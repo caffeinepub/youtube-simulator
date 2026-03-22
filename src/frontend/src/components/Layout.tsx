@@ -1,6 +1,11 @@
-import { Search } from "lucide-react";
-import { type ReactNode, useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Menu, Search, X } from "lucide-react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Page } from "../App";
 import { useGame } from "../store/gameStore";
 
@@ -14,17 +19,25 @@ interface LayoutProps {
 
 const godBoosts = [
   {
-    label: "\ud83d\ude80 Viral Boost",
+    label: "\uD83D\uDE80 Viral Boost",
     subs: 10000,
     desc: "Jumpstart your channel growth!",
   },
-  { label: "\u2b50 YouTube Famous", subs: 100000, desc: "You're going viral!" },
+  { label: "\u2B50 YouTube Famous", subs: 100000, desc: "You're going viral!" },
   {
-    label: "\ud83c\udfc6 YouTube Star",
+    label: "\uD83C\uDFC6 YouTube Star",
     subs: 1000000,
     desc: "One million strong!",
   },
 ];
+
+function formatRelativeTime(ts: number): string {
+  const diff = Date.now() - ts;
+  if (diff < 60000) return "just now";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return `${Math.floor(diff / 86400000)}d ago`;
+}
 
 export default function Layout({
   children,
@@ -33,11 +46,46 @@ export default function Layout({
   searchQuery,
   onSearch,
 }: LayoutProps) {
-  const { channel, applyBoost, unlockGodMode, godModeUnlocked } = useGame();
+  const {
+    channel,
+    applyBoostTick,
+    unlockGodMode,
+    godModeUnlocked,
+    notifications,
+    markAllNotificationsRead,
+  } = useGame();
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showGodModal, setShowGodModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const versionClickCount = useRef(0);
   const versionClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // God Mode boost animation state
+  const [boostAnimating, setBoostAnimating] = useState(false);
+  const [boostTarget, setBoostTarget] = useState(0);
+  const [boostCurrent, setBoostCurrent] = useState(0);
+  const [boostLabel, setBoostLabel] = useState("");
+  const boostIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close notifications on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,35 +122,58 @@ export default function Layout({
   };
 
   const handleBoost = (subs: number, label: string) => {
-    if (!channel) {
-      toast.error("Create a channel first!");
-      return;
-    }
-    applyBoost(subs);
-    toast.success(`${label} activated! +${subs.toLocaleString()} subscribers!`);
-    setShowGodModal(false);
+    if (!channel) return;
+    if (boostAnimating) return;
+
+    setBoostAnimating(true);
+    setBoostTarget(subs);
+    setBoostCurrent(0);
+    setBoostLabel(label);
+
+    const totalTicks = 40;
+    const amountPerTick = Math.ceil(subs / totalTicks);
+    let ticked = 0;
+
+    boostIntervalRef.current = setInterval(() => {
+      ticked += 1;
+      const added =
+        ticked < totalTicks
+          ? amountPerTick
+          : subs - amountPerTick * (totalTicks - 1);
+      applyBoostTick(added);
+      setBoostCurrent((prev) => Math.min(prev + added, subs));
+
+      if (ticked >= totalTicks) {
+        if (boostIntervalRef.current) clearInterval(boostIntervalRef.current);
+        setTimeout(() => {
+          setBoostAnimating(false);
+          setShowGodModal(false);
+        }, 600);
+      }
+    }, 50);
   };
 
-  const sidebarLinks: Array<{ label: string; page: Page; section?: boolean }> =
-    [
-      { label: "Home", page: { name: "home" } },
-      { label: "\ud83d\udd25 Trending", page: { name: "trending" } },
-      { label: "\ud83c\udfa5 Shorts", page: { name: "shorts" } },
-      { label: "\ud83d\udce7 Subscriptions", page: { name: "subscriptions" } },
-      { label: "\ud83d\udd51 History", page: { name: "history" } },
-      { label: "\ud83d\udcda Library", page: { name: "library" } },
-      { label: "\ud83d\udd2d Explore", page: { name: "explore" } },
-    ];
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const sidebarLinks: Array<{ label: string; page: Page }> = [
+    { label: "Home", page: { name: "home" } },
+    { label: "\uD83D\uDD25 Trending", page: { name: "trending" } },
+    { label: "\uD83C\uDFA5 Shorts", page: { name: "shorts" } },
+    { label: "\uD83D\uDCE7 Subscriptions", page: { name: "subscriptions" } },
+    { label: "\uD83D\uDD51 History", page: { name: "history" } },
+    { label: "\uD83D\uDCDA Library", page: { name: "library" } },
+    { label: "\uD83D\uDD2D Explore", page: { name: "explore" } },
+  ];
 
   const categories = [
     "Music",
     "Comedy",
     "Film & Animation",
-    "Autos & Vehicles",
-    "News & Politics",
-    "Sports",
     "Gaming",
     "Education",
+    "Sports",
+    "News",
+    "Tech",
   ];
 
   return (
@@ -124,6 +195,7 @@ export default function Layout({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            padding: "16px",
           }}
         >
           <div
@@ -132,7 +204,7 @@ export default function Layout({
               border: "1px solid #e0e0e0",
               borderRadius: "4px",
               maxWidth: "400px",
-              width: "90%",
+              width: "100%",
               overflow: "hidden",
             }}
           >
@@ -148,7 +220,7 @@ export default function Layout({
               <span
                 style={{ color: "#fff", fontWeight: "bold", fontSize: "14px" }}
               >
-                \ud83c\udfae Welcome to YouTube Simulator!
+                \uD83C\uDFAE Welcome to YouTube Simulator!
               </span>
               <button
                 type="button"
@@ -158,10 +230,10 @@ export default function Layout({
                   border: "none",
                   color: "#fff",
                   cursor: "pointer",
-                  fontSize: "16px",
+                  fontSize: "18px",
                 }}
               >
-                \u00d7
+                \u00D7
               </button>
             </div>
             <div style={{ padding: "20px" }}>
@@ -173,7 +245,7 @@ export default function Layout({
                   lineHeight: "1.6",
                 }}
               >
-                This is a game — no real Google account needed!
+                This is a game \u2014 no real Google account needed!
                 <br />
                 Create your channel to start uploading videos and tracking your
                 stats.
@@ -195,6 +267,7 @@ export default function Layout({
                     color: "#fff",
                     fontWeight: "bold",
                   }}
+                  data-ocid="signin.confirm_button"
                 >
                   Create My Channel
                 </button>
@@ -210,6 +283,7 @@ export default function Layout({
                     fontSize: "13px",
                     color: "#333",
                   }}
+                  data-ocid="signin.cancel_button"
                 >
                   Maybe Later
                 </button>
@@ -230,6 +304,7 @@ export default function Layout({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            padding: "16px",
           }}
         >
           <div
@@ -238,9 +313,10 @@ export default function Layout({
               border: "2px solid #cc0000",
               borderRadius: "4px",
               maxWidth: "460px",
-              width: "90%",
+              width: "100%",
               overflow: "hidden",
             }}
+            data-ocid="godmode.modal"
           >
             <div
               style={{
@@ -258,99 +334,176 @@ export default function Layout({
                   fontSize: "15px",
                 }}
               >
-                \u26a1 GOD MODE ACTIVATED
+                \u26A1 GOD MODE ACTIVATED
               </span>
-              <button
-                type="button"
-                onClick={() => setShowGodModal(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                }}
-              >
-                \u00d7
-              </button>
+              {!boostAnimating && (
+                <button
+                  type="button"
+                  onClick={() => setShowGodModal(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontSize: "18px",
+                  }}
+                >
+                  \u00D7
+                </button>
+              )}
             </div>
             <div style={{ padding: "16px" }}>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#666",
-                  marginBottom: "16px",
-                }}
-              >
-                Choose a subscriber boost package for your channel:
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                {godBoosts.map((boost) => (
+              {boostAnimating ? (
+                <div style={{ textAlign: "center", padding: "20px 0" }}>
                   <div
-                    key={boost.subs}
                     style={{
-                      border: "1px solid #e0e0e0",
-                      borderRadius: "3px",
-                      padding: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "12px",
+                      fontSize: "14px",
+                      color: "#555",
+                      marginBottom: "12px",
                     }}
                   >
-                    <div>
-                      <div
-                        style={{
-                          fontWeight: "bold",
-                          fontSize: "13px",
-                          color: "#333",
-                        }}
-                      >
-                        {boost.label}
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#888" }}>
-                        {boost.desc}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          color: "#cc0000",
-                          fontWeight: "bold",
-                          marginTop: "2px",
-                        }}
-                      >
-                        +{boost.subs.toLocaleString()} subscribers
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleBoost(boost.subs, boost.label)}
-                      style={{
-                        padding: "5px 14px",
-                        backgroundColor: "#cc0000",
-                        border: "1px solid #aa0000",
-                        borderRadius: "2px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        color: "#fff",
-                        fontWeight: "bold",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Activate
-                    </button>
+                    \uD83D\uDE80 {boostLabel} activating...
                   </div>
-                ))}
-              </div>
+                  <div
+                    style={{
+                      fontSize: "36px",
+                      fontWeight: "bold",
+                      color: "#cc0000",
+                      marginBottom: "8px",
+                      fontVariantNumeric: "tabular-nums",
+                      letterSpacing: "-1px",
+                    }}
+                  >
+                    +{boostCurrent.toLocaleString()}
+                  </div>
+                  <div
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#f0f0f0",
+                      borderRadius: "4px",
+                      height: "8px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        backgroundColor: "#cc0000",
+                        borderRadius: "4px",
+                        width: `${Math.round((boostCurrent / boostTarget) * 100)}%`,
+                        transition: "width 0.05s linear",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#888",
+                      marginTop: "6px",
+                    }}
+                  >
+                    {Math.round((boostCurrent / boostTarget) * 100)}% complete
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    Choose a subscriber boost package for your channel:
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                    }}
+                  >
+                    {godBoosts.map((boost) => (
+                      <div
+                        key={boost.subs}
+                        style={{
+                          border: "1px solid #e0e0e0",
+                          borderRadius: "3px",
+                          padding: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "12px",
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "13px",
+                              color: "#333",
+                            }}
+                          >
+                            {boost.label}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "#888" }}>
+                            {boost.desc}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: "#cc0000",
+                              fontWeight: "bold",
+                              marginTop: "2px",
+                            }}
+                          >
+                            +{boost.subs.toLocaleString()} subscribers
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleBoost(boost.subs, boost.label)}
+                          style={{
+                            padding: "5px 14px",
+                            backgroundColor: "#cc0000",
+                            border: "1px solid #aa0000",
+                            borderRadius: "2px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            whiteSpace: "nowrap",
+                          }}
+                          data-ocid="godmode.primary_button"
+                        >
+                          Activate
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Sidebar overlay (mobile) */}
+      {isMobile && sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            zIndex: 200,
+            border: "none",
+            cursor: "default",
+            padding: 0,
+          }}
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
       {/* Top Navbar */}
@@ -361,34 +514,57 @@ export default function Layout({
           padding: "6px 12px",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
+          gap: "8px",
           position: "sticky",
           top: 0,
-          zIndex: 100,
+          zIndex: 150,
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       >
+        {/* Hamburger (mobile) */}
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px",
+              display: "flex",
+              alignItems: "center",
+              color: "#333",
+              flexShrink: 0,
+            }}
+            data-ocid="nav.toggle"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+
+        {/* Logo */}
         <button
           type="button"
           onClick={() => navigate({ name: "home" })}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "3px",
+            gap: "2px",
             border: "none",
             background: "none",
             cursor: "pointer",
             padding: "2px 0",
             flexShrink: 0,
           }}
+          data-ocid="nav.link"
         >
           <span
             style={{
               backgroundColor: "#cc0000",
               color: "#ffffff",
               fontWeight: "bold",
-              fontSize: "16px",
-              padding: "3px 7px",
+              fontSize: isMobile ? "14px" : "16px",
+              padding: "3px 6px",
               borderRadius: "3px",
               letterSpacing: "-0.5px",
             }}
@@ -399,7 +575,7 @@ export default function Layout({
             style={{
               color: "#333333",
               fontWeight: "bold",
-              fontSize: "16px",
+              fontSize: isMobile ? "14px" : "16px",
               letterSpacing: "-0.5px",
             }}
           >
@@ -407,6 +583,7 @@ export default function Layout({
           </span>
         </button>
 
+        {/* Search */}
         <form
           onSubmit={handleSearch}
           style={{
@@ -430,12 +607,14 @@ export default function Layout({
               outline: "none",
               borderRadius: "2px 0 0 2px",
               backgroundColor: "#ffffff",
+              minWidth: 0,
             }}
+            data-ocid="nav.search_input"
           />
           <button
             type="submit"
             style={{
-              padding: "5px 12px",
+              padding: "5px 10px",
               backgroundColor: "#f0f0f0",
               border: "1px solid #c0c0c0",
               cursor: "pointer",
@@ -443,21 +622,145 @@ export default function Layout({
               borderRadius: "0 2px 2px 0",
               display: "flex",
               alignItems: "center",
+              flexShrink: 0,
             }}
+            data-ocid="nav.button"
           >
             <Search size={14} color="#555" />
           </button>
         </form>
 
+        {/* Right buttons */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "6px",
             flexShrink: 0,
             marginLeft: "auto",
           }}
         >
+          {/* Bell */}
+          <div ref={notifRef} style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowNotifications((v) => !v);
+                markAllNotificationsRead();
+              }}
+              style={{
+                background: "none",
+                border: "1px solid #c0c0c0",
+                borderRadius: "2px",
+                cursor: "pointer",
+                padding: "4px 7px",
+                fontSize: "16px",
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                lineHeight: 1,
+              }}
+              data-ocid="notifications.button"
+            >
+              \uD83D\uDD14
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-4px",
+                    right: "-4px",
+                    backgroundColor: "#cc0000",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: "16px",
+                    height: "16px",
+                    fontSize: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    lineHeight: 1,
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifications && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  right: 0,
+                  backgroundColor: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "4px",
+                  width: "300px",
+                  maxHeight: "360px",
+                  overflowY: "auto",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                  zIndex: 500,
+                }}
+                data-ocid="notifications.popover"
+              >
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    borderBottom: "1px solid #f0f0f0",
+                    fontWeight: "bold",
+                    fontSize: "13px",
+                    color: "#333",
+                  }}
+                >
+                  Notifications
+                </div>
+                {notifications.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "20px",
+                      textAlign: "center",
+                      fontSize: "12px",
+                      color: "#888",
+                    }}
+                  >
+                    No notifications yet
+                  </div>
+                ) : (
+                  notifications.slice(0, 10).map((n) => (
+                    <div
+                      key={n.id}
+                      style={{
+                        padding: "10px 14px",
+                        borderBottom: "1px solid #f8f8f8",
+                        backgroundColor: n.read ? "#fff" : "#fff5f5",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#333",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {n.message}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "#aaa",
+                          marginTop: "3px",
+                        }}
+                      >
+                        {formatRelativeTime(n.timestamp)}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Upload */}
           <button
             type="button"
             onClick={handleUploadClick}
@@ -470,9 +773,12 @@ export default function Layout({
               borderRadius: "2px",
               color: "#333",
             }}
+            data-ocid="nav.upload_button"
           >
-            Upload
+            {isMobile ? "\u2191" : "Upload"}
           </button>
+
+          {/* Channel / Sign In */}
           {channel ? (
             <button
               type="button"
@@ -480,8 +786,8 @@ export default function Layout({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
-                padding: "4px 10px",
+                gap: "5px",
+                padding: "4px 8px",
                 backgroundColor: "#cc0000",
                 border: "1px solid #aa0000",
                 cursor: "pointer",
@@ -490,23 +796,38 @@ export default function Layout({
                 color: "#fff",
                 fontWeight: "bold",
               }}
+              data-ocid="nav.link"
             >
               <span
                 style={{
-                  width: "20px",
-                  height: "20px",
+                  width: "18px",
+                  height: "18px",
                   borderRadius: "50%",
-                  backgroundColor: "rgba(255,255,255,0.3)",
+                  backgroundColor:
+                    channel.avatarColor ?? "rgba(255,255,255,0.3)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "11px",
+                  fontSize: "9px",
+                  color: "#fff",
                   fontWeight: "bold",
+                  flexShrink: 0,
                 }}
               >
-                {channel.name[0]?.toUpperCase()}
+                {channel.name.charAt(0).toUpperCase()}
               </span>
-              {channel.name.split(" ")[0]}
+              {!isMobile && (
+                <span
+                  style={{
+                    maxWidth: "80px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {channel.name}
+                </span>
+              )}
             </button>
           ) : (
             <button
@@ -514,94 +835,206 @@ export default function Layout({
               onClick={handleSignInClick}
               style={{
                 padding: "5px 10px",
-                backgroundColor: "#cc0000",
-                border: "1px solid #aa0000",
+                backgroundColor: "#fff",
+                border: "1px solid #cc0000",
                 cursor: "pointer",
                 fontSize: "12px",
                 borderRadius: "2px",
-                color: "#fff",
+                color: "#cc0000",
                 fontWeight: "bold",
               }}
+              data-ocid="nav.button"
             >
-              Sign In \u25be
+              {isMobile ? "\uD83D\uDC64" : "Sign In"}
             </button>
           )}
         </div>
       </header>
 
-      <div style={{ display: "flex", minHeight: "calc(100vh - 47px)" }}>
-        {/* Left Sidebar */}
-        <aside
+      <div style={{ display: "flex", minHeight: "calc(100vh - 49px)" }}>
+        {/* Sidebar */}
+        <nav
           style={{
-            width: "160px",
-            flexShrink: 0,
+            width: isMobile ? "240px" : "180px",
             backgroundColor: "#f8f8f8",
             borderRight: "1px solid #e0e0e0",
-            padding: "10px 0",
-            fontSize: "12px",
-            position: "sticky",
-            top: "47px",
-            height: "calc(100vh - 47px)",
+            padding: "8px 0",
+            flexShrink: 0,
             overflowY: "auto",
+            ...(isMobile
+              ? {
+                  position: "fixed",
+                  top: 0,
+                  left: sidebarOpen ? 0 : "-260px",
+                  bottom: 0,
+                  zIndex: 250,
+                  transition: "left 0.25s ease",
+                  boxShadow: sidebarOpen
+                    ? "4px 0 16px rgba(0,0,0,0.2)"
+                    : "none",
+                }
+              : {}),
           }}
         >
+          {isMobile && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "10px 14px 6px",
+                borderBottom: "1px solid #e0e0e0",
+                marginBottom: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  color: "#cc0000",
+                }}
+              >
+                Menu
+              </span>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <X size={18} color="#555" />
+              </button>
+            </div>
+          )}
+
           {sidebarLinks.map((link) => (
             <button
               key={link.label}
               type="button"
-              onClick={() => navigate(link.page)}
+              onClick={() => {
+                navigate(link.page);
+                if (isMobile) setSidebarOpen(false);
+              }}
               style={{
                 display: "block",
                 width: "100%",
                 textAlign: "left",
-                padding: "5px 12px",
-                background: currentPage === link.page.name ? "#e8e8e8" : "none",
+                padding: "7px 14px",
                 border: "none",
+                backgroundColor:
+                  currentPage === link.page.name ? "#e8e8e8" : "transparent",
                 cursor: "pointer",
-                color: currentPage === link.page.name ? "#cc0000" : "#2779b8",
                 fontSize: "12px",
+                color: currentPage === link.page.name ? "#cc0000" : "#333",
                 fontWeight: currentPage === link.page.name ? "bold" : "normal",
+                borderLeft:
+                  currentPage === link.page.name
+                    ? "3px solid #cc0000"
+                    : "3px solid transparent",
               }}
+              data-ocid="nav.link"
             >
               {link.label}
             </button>
           ))}
 
-          <div
-            style={{
-              height: "1px",
-              backgroundColor: "#e0e0e0",
-              margin: "6px 8px",
-            }}
-          />
+          <div style={{ borderTop: "1px solid #e0e0e0", margin: "8px 0" }} />
 
+          {channel && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  navigate({ name: "studio" });
+                  if (isMobile) setSidebarOpen(false);
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "7px 14px",
+                  border: "none",
+                  backgroundColor:
+                    currentPage === "studio" ? "#e8e8e8" : "transparent",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  color: currentPage === "studio" ? "#cc0000" : "#333",
+                  fontWeight: currentPage === "studio" ? "bold" : "normal",
+                  borderLeft:
+                    currentPage === "studio"
+                      ? "3px solid #cc0000"
+                      : "3px solid transparent",
+                }}
+                data-ocid="nav.link"
+              >
+                \uD83C\uDFA8 YouTube Studio
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  navigate({ name: "mychannel" });
+                  if (isMobile) setSidebarOpen(false);
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "7px 14px",
+                  border: "none",
+                  backgroundColor:
+                    currentPage === "mychannel" ? "#e8e8e8" : "transparent",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  color: currentPage === "mychannel" ? "#cc0000" : "#333",
+                  fontWeight: currentPage === "mychannel" ? "bold" : "normal",
+                  borderLeft:
+                    currentPage === "mychannel"
+                      ? "3px solid #cc0000"
+                      : "3px solid transparent",
+                }}
+                data-ocid="nav.link"
+              >
+                \uD83D\uDC64 My Channel
+              </button>
+            </>
+          )}
+
+          <div style={{ borderTop: "1px solid #e0e0e0", margin: "8px 0" }} />
           <div
             style={{
-              padding: "4px 12px",
-              color: "#888",
+              padding: "4px 14px",
               fontSize: "11px",
+              color: "#aaa",
               fontWeight: "bold",
               textTransform: "uppercase",
               letterSpacing: "0.5px",
             }}
           >
-            Categories
+            Browse
           </div>
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
-              onClick={() => navigate({ name: "home" })}
+              onClick={() => {
+                navigate({ name: "home" });
+                if (isMobile) setSidebarOpen(false);
+              }}
               style={{
                 display: "block",
                 width: "100%",
                 textAlign: "left",
-                padding: "4px 12px",
-                background: "none",
+                padding: "5px 14px",
                 border: "none",
+                backgroundColor: "transparent",
                 cursor: "pointer",
-                color: "#2779b8",
-                fontSize: "12px",
+                fontSize: "11px",
+                color: "#555",
               }}
             >
               {cat}
@@ -610,101 +1043,68 @@ export default function Layout({
 
           <div
             style={{
-              height: "1px",
-              backgroundColor: "#e0e0e0",
-              margin: "6px 8px",
-            }}
-          />
-
-          <button
-            type="button"
-            onClick={() => navigate({ name: "mychannel" })}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "5px 12px",
-              background: currentPage === "mychannel" ? "#e8e8e8" : "none",
-              border: "none",
-              cursor: "pointer",
-              color: currentPage === "mychannel" ? "#cc0000" : "#2779b8",
-              fontSize: "12px",
-              fontWeight: currentPage === "mychannel" ? "bold" : "normal",
+              borderTop: "1px solid #e0e0e0",
+              margin: "8px 0",
+              paddingTop: "4px",
             }}
           >
-            \ud83d\udc64 My Channel
-          </button>
-          {channel && (
             <button
               type="button"
-              onClick={() => navigate({ name: "studio" })}
+              onClick={handleVersionClick}
               style={{
                 display: "block",
                 width: "100%",
                 textAlign: "left",
-                padding: "5px 12px",
-                background: currentPage === "studio" ? "#e8e8e8" : "none",
+                padding: "5px 14px",
+                fontSize: "10px",
+                color: godModeUnlocked ? "#ffd700" : "#bbb",
+                cursor: "default",
+                userSelect: "none",
+                background: "none",
                 border: "none",
-                cursor: "pointer",
-                color: currentPage === "studio" ? "#cc0000" : "#2779b8",
-                fontSize: "12px",
-                fontWeight: currentPage === "studio" ? "bold" : "normal",
               }}
+              title={godModeUnlocked ? "God Mode Active" : ""}
             >
-              \ud83c\udfa8 Studio
+              {godModeUnlocked ? "\u26A1 GOD MODE" : "v4.0"}
             </button>
-          )}
-        </aside>
+          </div>
+        </nav>
 
+        {/* Main content */}
         <main
           style={{
             flex: 1,
             minWidth: 0,
-            backgroundColor: "#ffffff",
-            padding: "12px 16px",
+            padding: isMobile ? "8px" : "16px",
+            overflowX: "hidden",
           }}
         >
           {children}
+
+          {/* Footer */}
+          <footer
+            style={{
+              borderTop: "1px solid #e8e8e8",
+              marginTop: "32px",
+              paddingTop: "16px",
+              paddingBottom: "24px",
+              textAlign: "center",
+              fontSize: "11px",
+              color: "#aaa",
+            }}
+          >
+            \u00A9 {new Date().getFullYear()}. Built with \u2764\uFE0F using{" "}
+            <a
+              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#cc0000", textDecoration: "none" }}
+            >
+              caffeine.ai
+            </a>
+          </footer>
         </main>
       </div>
-
-      <footer
-        style={{
-          borderTop: "1px solid #e0e0e0",
-          padding: "12px 16px",
-          textAlign: "center",
-          fontSize: "11px",
-          color: "#888",
-          backgroundColor: "#f8f8f8",
-        }}
-      >
-        \u00a9 {new Date().getFullYear()}.{" "}
-        <a
-          href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: "#2779b8" }}
-        >
-          Built with \u2764\ufe0f using caffeine.ai
-        </a>
-        {" | "}
-        <button
-          type="button"
-          onClick={handleVersionClick}
-          style={{
-            cursor: "default",
-            color: "#bbb",
-            background: "none",
-            border: "none",
-            padding: 0,
-            font: "inherit",
-            fontSize: "11px",
-          }}
-          title={godModeUnlocked ? "\u26a1 God Mode Unlocked" : ""}
-        >
-          {godModeUnlocked ? "\u26a1 v2.0" : "v2.0"}
-        </button>
-      </footer>
     </div>
   );
 }

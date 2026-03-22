@@ -5,6 +5,15 @@ interface TrendingPageProps {
   navigate: (page: Page) => void;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  gaming: "#1e88e5",
+  music: "#e53935",
+  sports: "#00897b",
+  education: "#388e3c",
+  comedy: "#f57c00",
+  other: "#5e35b1",
+};
+
 export default function TrendingPage({ navigate }: TrendingPageProps) {
   const trending = [...mockVideos].sort((a, b) => b.views - a.views);
   return (
@@ -24,13 +33,13 @@ export default function TrendingPage({ navigate }: TrendingPageProps) {
             margin: 0,
           }}
         >
-          \ud83d\udd25 Trending
+          🔥 Trending
         </h2>
       </div>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
           gap: "16px",
         }}
       >
@@ -38,11 +47,12 @@ export default function TrendingPage({ navigate }: TrendingPageProps) {
           <button
             key={v.id}
             type="button"
+            data-ocid={`trending.item.${i + 1}`}
             onClick={() => navigate({ name: "watch", videoId: v.id })}
             style={{
               background: "none",
               border: "1px solid #e0e0e0",
-              borderRadius: "3px",
+              borderRadius: "4px",
               cursor: "pointer",
               textAlign: "left",
               overflow: "hidden",
@@ -55,7 +65,7 @@ export default function TrendingPage({ navigate }: TrendingPageProps) {
                 alt={v.title}
                 style={{
                   width: "100%",
-                  height: "112px",
+                  height: "130px",
                   objectFit: "cover",
                   display: "block",
                 }}
@@ -69,33 +79,61 @@ export default function TrendingPage({ navigate }: TrendingPageProps) {
                   color: "#fff",
                   fontSize: "10px",
                   fontWeight: "bold",
-                  padding: "2px 6px",
+                  padding: "2px 7px",
                   borderRadius: "2px",
                 }}
               >
-                \ud83d\udd25 #{i + 1} Trending
+                🔥 #{i + 1}
               </div>
-            </div>
-            <div style={{ padding: "8px" }}>
               <div
                 style={{
-                  fontSize: "12px",
+                  position: "absolute",
+                  bottom: "4px",
+                  right: "4px",
+                  backgroundColor: "rgba(0,0,0,0.85)",
+                  color: "#fff",
+                  fontSize: "10px",
                   fontWeight: "bold",
-                  color: "#333",
-                  marginBottom: "4px",
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
+                  padding: "1px 4px",
+                  borderRadius: "2px",
                 }}
               >
-                {v.title}
+                {v.duration}
               </div>
-              <div style={{ fontSize: "11px", color: "#2779b8" }}>
-                {v.channelName}
-              </div>
-              <div style={{ fontSize: "11px", color: "#888" }}>
-                {formatViews(v.views)}
+            </div>
+            <div
+              style={{
+                padding: "0",
+                borderTop: `3px solid ${CATEGORY_COLORS[v.category] ?? "#cc0000"}`,
+              }}
+            >
+              <div style={{ padding: "8px" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    color: "#333",
+                    marginBottom: "4px",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
+                  {v.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#2779b8",
+                    marginBottom: "2px",
+                  }}
+                >
+                  {v.channelName}
+                </div>
+                <div style={{ fontSize: "11px", color: "#888" }}>
+                  {formatViews(v.views)}
+                </div>
               </div>
             </div>
           </button>

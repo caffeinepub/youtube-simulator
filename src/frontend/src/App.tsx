@@ -1,6 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { useCallback, useState } from "react";
+import AlgorithmEngine from "./components/AlgorithmEngine";
 import Layout from "./components/Layout";
+import SponsorshipModal from "./components/SponsorshipModal";
 import ChannelPage from "./pages/ChannelPage";
 import ExplorePage from "./pages/ExplorePage";
 import HistoryPage from "./pages/HistoryPage";
@@ -71,6 +73,8 @@ function AppInner() {
 
   return (
     <>
+      <AlgorithmEngine />
+      <SponsorshipModal />
       <Layout
         navigate={navigate}
         currentPage={page.name}

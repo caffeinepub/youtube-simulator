@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Page } from "../App";
+import AnimatedNumber from "../components/AnimatedNumber";
 import { formatViews } from "../data/mockVideos";
 import { DEFAULT_BIOS } from "../data/presets";
 import { useGame } from "../store/gameStore";
@@ -241,7 +242,7 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
             {channel.name}
           </h1>
           <div style={{ fontSize: "12px", color: "#888" }}>
-            {channel.subscribers.toLocaleString()} subscribers &middot;{" "}
+            <AnimatedNumber value={channel.subscribers} /> subscribers &middot;{" "}
             {videos.length} videos
           </div>
           {channel.bio && (
@@ -302,12 +303,14 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
           marginBottom: "20px",
         }}
       >
-        {[
-          { label: "Subscribers", value: channel.subscribers.toLocaleString() },
-          { label: "Total Videos", value: String(videos.length) },
-          { label: "Total Views", value: formatViews(totalViews) },
-          { label: "Total Likes", value: totalLikes.toLocaleString() },
-        ].map((stat) => (
+        {(
+          [
+            { label: "Subscribers", numValue: channel.subscribers },
+            { label: "Total Videos", strValue: String(videos.length) },
+            { label: "Total Views", strValue: totalViews.toLocaleString() },
+            { label: "Total Likes", strValue: totalLikes.toLocaleString() },
+          ] as Array<{ label: string; numValue?: number; strValue?: string }>
+        ).map((stat) => (
           <div
             key={stat.label}
             style={{
@@ -326,7 +329,11 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                 marginBottom: "2px",
               }}
             >
-              {stat.value}
+              {stat.numValue !== undefined ? (
+                <AnimatedNumber value={stat.numValue} />
+              ) : (
+                stat.strValue
+              )}
             </div>
             <div style={{ fontSize: "11px", color: "#888" }}>{stat.label}</div>
           </div>

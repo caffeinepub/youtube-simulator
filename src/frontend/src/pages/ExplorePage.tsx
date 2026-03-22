@@ -1,82 +1,17 @@
 import type { Page } from "../App";
+import { formatViews, mockVideos } from "../data/mockVideos";
 
 interface ExplorePageProps {
   navigate: (page: Page) => void;
 }
 
 const CATEGORIES = [
-  {
-    name: "Music",
-    icon: "\ud83c\udfb5",
-    color: "#e53935",
-    description: "Songs, covers, music videos",
-  },
-  {
-    name: "Gaming",
-    icon: "\ud83c\udfae",
-    color: "#1e88e5",
-    description: "Gameplay, walkthroughs, esports",
-  },
-  {
-    name: "Comedy",
-    icon: "\ud83d\ude02",
-    color: "#f57c00",
-    description: "Skits, stand-up, funny clips",
-  },
-  {
-    name: "Education",
-    icon: "\ud83d\udcda",
-    color: "#388e3c",
-    description: "Tutorials, how-tos, science",
-  },
-  {
-    name: "Sports",
-    icon: "\u26bd",
-    color: "#00897b",
-    description: "Highlights, training, analysis",
-  },
-  {
-    name: "News",
-    icon: "\ud83d\udcf0",
-    color: "#5e35b1",
-    description: "Current events, world news",
-  },
-  {
-    name: "Film & Animation",
-    icon: "\ud83c\udfa5",
-    color: "#d81b60",
-    description: "Movies, animation, trailers",
-  },
-  {
-    name: "Autos & Vehicles",
-    icon: "\ud83d\ude97",
-    color: "#6d4c41",
-    description: "Cars, bikes, reviews",
-  },
-  {
-    name: "Travel",
-    icon: "\u2708\ufe0f",
-    color: "#0288d1",
-    description: "Destinations, vlogs, adventures",
-  },
-  {
-    name: "Food & Cooking",
-    icon: "\ud83c\udf73",
-    color: "#ef6c00",
-    description: "Recipes, reviews, cooking shows",
-  },
-  {
-    name: "Technology",
-    icon: "\ud83d\udcf1",
-    color: "#37474f",
-    description: "Reviews, tutorials, gadgets",
-  },
-  {
-    name: "Fashion & Beauty",
-    icon: "\ud83d\udc84",
-    color: "#c2185b",
-    description: "Style, makeup, lifestyle",
-  },
+  { name: "Music", icon: "🎵", color: "#e53935", key: "music" },
+  { name: "Gaming", icon: "🎮", color: "#1e88e5", key: "gaming" },
+  { name: "Comedy", icon: "😂", color: "#f57c00", key: "comedy" },
+  { name: "Education", icon: "📚", color: "#388e3c", key: "education" },
+  { name: "Sports", icon: "⚽", color: "#00897b", key: "sports" },
+  { name: "Other", icon: "🎬", color: "#5e35b1", key: "other" },
 ];
 
 export default function ExplorePage({ navigate }: ExplorePageProps) {
@@ -97,67 +32,118 @@ export default function ExplorePage({ navigate }: ExplorePageProps) {
             margin: 0,
           }}
         >
-          \ud83d\udd2d Explore Categories
+          🔍 Explore
         </h2>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-          gap: "14px",
-        }}
-      >
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.name}
-            type="button"
-            onClick={() => navigate({ name: "home" })}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              textAlign: "left",
-              padding: "0",
-              borderRadius: "6px",
-              overflow: "hidden",
-            }}
-          >
+
+      {CATEGORIES.map((cat) => {
+        const catVideos = mockVideos
+          .filter((v) => v.category === cat.key)
+          .slice(0, 4);
+        if (catVideos.length === 0) return null;
+        return (
+          <div key={cat.key} style={{ marginBottom: "28px" }}>
+            {/* Category header */}
             <div
               style={{
-                height: "80px",
                 backgroundColor: cat.color,
+                color: "#fff",
+                padding: "8px 14px",
+                borderRadius: "4px 4px 0 0",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                fontSize: "36px",
-                borderRadius: "6px 6px 0 0",
+                gap: "8px",
+                marginBottom: "0",
               }}
             >
-              {cat.icon}
+              <span style={{ fontSize: "20px" }}>{cat.icon}</span>
+              <span style={{ fontWeight: "bold", fontSize: "14px" }}>
+                {cat.name}
+              </span>
             </div>
+            {/* Videos row */}
             <div
               style={{
-                padding: "8px 10px",
-                backgroundColor: "#f8f8f8",
-                border: "1px solid #e0e0e0",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                gap: "0",
+                border: `1px solid ${cat.color}`,
                 borderTop: "none",
-                borderRadius: "0 0 6px 6px",
+                borderRadius: "0 0 4px 4px",
+                overflow: "hidden",
               }}
             >
-              <div
-                style={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}
-              >
-                {cat.name}
-              </div>
-              <div
-                style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}
-              >
-                {cat.description}
-              </div>
+              {catVideos.map((v, i) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  data-ocid={`explore.item.${i + 1}`}
+                  onClick={() => navigate({ name: "watch", videoId: v.id })}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    borderRight:
+                      i < catVideos.length - 1 ? "1px solid #e0e0e0" : "none",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    overflow: "hidden",
+                    padding: "0",
+                  }}
+                >
+                  <div style={{ position: "relative" }}>
+                    <img
+                      src={v.thumbnail}
+                      alt={v.title}
+                      style={{
+                        width: "100%",
+                        height: "110px",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "4px",
+                        right: "4px",
+                        backgroundColor: "rgba(0,0,0,0.85)",
+                        color: "#fff",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        padding: "1px 4px",
+                        borderRadius: "2px",
+                      }}
+                    >
+                      {v.duration}
+                    </div>
+                  </div>
+                  <div
+                    style={{ padding: "7px 8px", backgroundColor: "#fafafa" }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        color: "#333",
+                        marginBottom: "2px",
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {v.title}
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#888" }}>
+                      {formatViews(v.views)}
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
-          </button>
-        ))}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

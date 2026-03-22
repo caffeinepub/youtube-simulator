@@ -69,6 +69,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
   const [localComments, setLocalComments] = useState<
     Array<{ id: string; author: string; text: string; likes: number }>
   >([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const playerVideo = isPlayerVideo
     ? (game.videos.find((v) => v.id === videoId) ?? null)
@@ -84,9 +91,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
       incrementViewsMutate(videoId);
       addToHistory(videoId);
     }
-    if (isPlayerVideo) {
-      addView(videoId);
-    }
+    if (isPlayerVideo) addView(videoId);
   }, [
     videoId,
     isMock,
@@ -157,6 +162,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
         channelName: game.channel?.name ?? "Your Channel",
         thumbnailUrl: playerVideo.thumbnailUrl,
         channelId: "mychannel",
+        category: playerVideo.category,
       };
     }
     if (isMock && mockVideo) {
@@ -169,6 +175,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
         channelName: mockVideo.channelName,
         thumbnailUrl: mockVideo.thumbnail,
         channelId: mockVideo.channelId,
+        category: mockVideo.category ?? "",
       };
     }
     if (!isMock && !isPlayerVideo && realVideo) {
@@ -181,6 +188,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
         channelName: "Channel",
         thumbnailUrl: realVideo.thumbnail?.getDirectURL() ?? "",
         channelId: "",
+        category: "",
       };
     }
     return null;
@@ -199,6 +207,9 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
   const displayDislikes =
     Number(videoData.dislikes) +
     (isPlayerVideo ? 0 : (localDislikes[videoId] ?? 0));
+  const totalReactions = displayLikes + displayDislikes;
+  const likePercent =
+    totalReactions > 0 ? (displayLikes / totalReactions) * 100 : 50;
 
   const commentsToShow = isPlayerVideo
     ? (playerVideo?.comments ?? [])
@@ -206,8 +217,27 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
       ? [...mockComments, ...localComments]
       : (realComments ?? []);
 
+  // Recommendations: same category or random mockVideos
+  const relatedVideos = mockVideos
+    .filter(
+      (v) =>
+        v.id !== videoId &&
+        (videoData.category ? v.category === videoData.category : true),
+    )
+    .slice(0, 5)
+    .concat(mockVideos.filter((v) => v.id !== videoId).slice(0, 5))
+    .slice(0, 5);
+
   return (
-    <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        gap: "16px",
+        alignItems: "flex-start",
+      }}
+    >
+      {/* Main video column */}
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* Video Player */}
         <div
@@ -215,8 +245,9 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
             width: "100%",
             backgroundColor: "#000",
             position: "relative",
-            paddingBottom: "56.25%",
+            aspectRatio: "16/9",
             marginBottom: "10px",
+            maxWidth: "100%",
           }}
         >
           {videoData.thumbnailUrl ? (
@@ -280,77 +311,132 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
           </div>
         </div>
 
+        {/* Title */}
         <h1
           style={{
             fontSize: "16px",
             fontWeight: "bold",
             color: "#333",
             margin: "0 0 6px",
+            wordBreak: "break-word",
           }}
         >
           {videoData.title}
         </h1>
+
+        {/* Stats + Actions */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
             borderBottom: "1px solid #e0e0e0",
             paddingBottom: "8px",
             marginBottom: "8px",
           }}
         >
-          <span style={{ fontSize: "12px", color: "#888" }}>
-            {formatViews(videoData.views)}
-          </span>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              type="button"
-              onClick={handleLike}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "6px",
+            }}
+          >
+            <span style={{ fontSize: "12px", color: "#888" }}>
+              {formatViews(videoData.views)} views
+            </span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              <button
+                type="button"
+                onClick={handleLike}
+                style={{
+                  padding: "4px 10px",
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #c0c0c0",
+                  borderRadius: "2px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  minWidth: "60px",
+                  whiteSpace: "nowrap",
+                }}
+                data-ocid="watch.button"
+              >
+                \uD83D\uDC4D {displayLikes.toLocaleString()}
+              </button>
+              <button
+                type="button"
+                onClick={handleDislike}
+                style={{
+                  padding: "4px 10px",
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #c0c0c0",
+                  borderRadius: "2px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  minWidth: "60px",
+                  whiteSpace: "nowrap",
+                }}
+                data-ocid="watch.button"
+              >
+                \uD83D\uDC4E {displayDislikes.toLocaleString()}
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: "4px 10px",
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #c0c0c0",
+                  borderRadius: "2px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  whiteSpace: "nowrap",
+                }}
+                data-ocid="watch.button"
+              >
+                Share
+              </button>
+            </div>
+          </div>
+
+          {/* Like/Dislike ratio bar */}
+          <div style={{ marginTop: "8px" }}>
+            <div
               style={{
-                padding: "4px 10px",
-                backgroundColor: "#f0f0f0",
-                border: "1px solid #c0c0c0",
+                height: "4px",
                 borderRadius: "2px",
-                cursor: "pointer",
-                fontSize: "12px",
+                backgroundColor: "#e0e0e0",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${likePercent}%`,
+                  backgroundColor: "#cc0000",
+                  borderRadius: "2px 0 0 2px",
+                  transition: "width 0.3s",
+                }}
+              />
+            </div>
+            <div
+              style={{
                 display: "flex",
-                alignItems: "center",
-                gap: "4px",
+                justifyContent: "space-between",
+                fontSize: "10px",
+                color: "#aaa",
+                marginTop: "2px",
               }}
             >
-              👍 {displayLikes}
-            </button>
-            <button
-              type="button"
-              onClick={handleDislike}
-              style={{
-                padding: "4px 10px",
-                backgroundColor: "#f0f0f0",
-                border: "1px solid #c0c0c0",
-                borderRadius: "2px",
-                cursor: "pointer",
-                fontSize: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              👎 {displayDislikes}
-            </button>
-            <button
-              type="button"
-              style={{
-                padding: "4px 10px",
-                backgroundColor: "#f0f0f0",
-                border: "1px solid #c0c0c0",
-                borderRadius: "2px",
-                cursor: "pointer",
-                fontSize: "12px",
-              }}
-            >
-              Share
-            </button>
+              <span>\uD83D\uDC4D {Math.round(likePercent)}% liked</span>
+              <span>
+                \uD83D\uDC4E {Math.round(100 - likePercent)}% disliked
+              </span>
+            </div>
           </div>
         </div>
 
@@ -364,6 +450,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
             padding: "8px",
             backgroundColor: "#f8f8f8",
             border: "1px solid #e0e0e0",
+            borderRadius: "2px",
           }}
         >
           <div
@@ -383,7 +470,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
           >
             {videoData.channelName[0]?.toUpperCase()}
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <button
               type="button"
               onClick={() =>
@@ -402,7 +489,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 fontSize: "12px",
                 color: "#0066cc",
                 padding: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: "200px",
+                display: "block",
               }}
+              data-ocid="watch.link"
             >
               {videoData.channelName}
             </button>
@@ -421,6 +514,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
             border: "1px solid #e0e0e0",
             borderRadius: "2px",
             marginBottom: "16px",
+            wordBreak: "break-word",
           }}
         >
           {videoData.description || "No description provided."}
@@ -443,12 +537,12 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 margin: 0,
               }}
             >
-              Comments &amp; Responses
+              Comments &amp; Responses ({commentsToShow.length})
             </h3>
           </div>
           <form
             onSubmit={handleComment}
-            style={{ marginBottom: "16px", display: "flex", gap: "8px" }}
+            style={{ marginBottom: "16px", display: "flex", gap: "6px" }}
           >
             <input
               value={commentText}
@@ -461,24 +555,29 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 fontSize: "12px",
                 borderRadius: "2px",
                 outline: "none",
+                minWidth: 0,
               }}
+              data-ocid="watch.textarea"
             />
             <button
               type="submit"
               style={{
-                padding: "5px 12px",
+                padding: "5px 10px",
                 backgroundColor: "#f0f0f0",
                 border: "1px solid #c0c0c0",
                 cursor: "pointer",
                 fontSize: "12px",
                 borderRadius: "2px",
+                flexShrink: 0,
+                whiteSpace: "nowrap",
               }}
+              data-ocid="watch.submit_button"
             >
-              Post Comment
+              Post
             </button>
           </form>
 
-          <div>
+          <div style={{ maxHeight: "500px", overflowY: "auto" }}>
             {(
               commentsToShow as Array<{
                 id: string;
@@ -500,54 +599,63 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
               >
                 <div
                   style={{
-                    width: "32px",
-                    height: "32px",
+                    width: "28px",
+                    height: "28px",
                     borderRadius: "50%",
                     backgroundColor: "#ccc",
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontWeight: "bold",
                     color: "#666",
                   }}
                 >
                   {c.author[0]}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <span
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
                     style={{
-                      fontWeight: "bold",
-                      fontSize: "12px",
-                      color: "#0066cc",
-                      marginRight: "8px",
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "baseline",
+                      flexWrap: "wrap",
                     }}
                   >
-                    {c.author}
-                  </span>
-                  {c.timestamp && (
-                    <span style={{ fontSize: "11px", color: "#aaa" }}>
-                      {new Date(c.timestamp).toLocaleDateString()}
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        color: "#0066cc",
+                      }}
+                    >
+                      {c.author}
                     </span>
-                  )}
+                    {c.timestamp && (
+                      <span style={{ fontSize: "11px", color: "#aaa" }}>
+                        {new Date(Number(c.timestamp)).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
                   <div
                     style={{
                       fontSize: "12px",
                       color: "#333",
-                      marginTop: "3px",
+                      marginTop: "2px",
+                      wordBreak: "break-word",
                     }}
                   >
                     {c.text}
                   </div>
                   <div
                     style={{
-                      marginTop: "4px",
+                      marginTop: "3px",
                       fontSize: "11px",
                       color: "#888",
                     }}
                   >
-                    👍 {Number(c.likes)}
+                    \uD83D\uDC4D {Number(c.likes)}
                   </div>
                   {c.playerReply && (
                     <div
@@ -559,6 +667,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                         borderRadius: "2px",
                         fontSize: "12px",
                         color: "#333",
+                        wordBreak: "break-word",
                       }}
                     >
                       <strong style={{ color: "#cc0000", fontSize: "11px" }}>
@@ -573,6 +682,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
             {commentsToShow.length === 0 && (
               <div
                 style={{ color: "#888", fontSize: "12px", padding: "16px 0" }}
+                data-ocid="watch.empty_state"
               >
                 No comments yet. Be the first to comment!
               </div>
@@ -582,7 +692,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
       </div>
 
       {/* Related videos sidebar */}
-      <div style={{ width: "240px", flexShrink: 0 }}>
+      <div style={{ width: isMobile ? "100%" : "240px", flexShrink: 0 }}>
         <div
           style={{
             borderBottom: "2px solid #cc0000",
@@ -598,29 +708,39 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
               margin: 0,
             }}
           >
-            Related Videos
+            Up Next
           </h3>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {mockVideos
-            .filter((v) => v.id !== videoId)
-            .slice(0, 5)
-            .map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => navigate({ name: "watch", videoId: v.id })}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {relatedVideos.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => navigate({ name: "watch", videoId: v.id })}
+              style={{
+                display: "flex",
+                gap: "8px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                borderRadius: "2px",
+                textAlign: "left",
+                width: "100%",
+              }}
+              data-ocid="watch.link"
+            >
+              <div
                 style={{
-                  display: "flex",
-                  gap: "6px",
-                  cursor: "pointer",
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  textAlign: "left",
+                  width: "96px",
+                  aspectRatio: "16/9",
+                  backgroundColor: "#1a1a1a",
+                  flexShrink: 0,
+                  borderRadius: "2px",
+                  overflow: "hidden",
                 }}
               >
-                <div style={{ width: "120px", height: "68px", flexShrink: 0 }}>
+                {v.thumbnail ? (
                   <img
                     src={v.thumbnail}
                     alt={v.title}
@@ -630,32 +750,55 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                       objectFit: "cover",
                     }}
                   />
-                </div>
-                <div style={{ flex: 1, paddingTop: "2px" }}>
+                ) : (
                   <div
                     style={{
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                      color: "#0066cc",
-                      lineHeight: "1.3",
-                      marginBottom: "2px",
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#666",
+                      fontSize: "18px",
                     }}
                   >
-                    {v.title}
+                    ▶
                   </div>
-                  <div style={{ fontSize: "10px", color: "#888" }}>
-                    {v.channelName}
-                  </div>
-                  <div style={{ fontSize: "10px", color: "#888" }}>
-                    {formatViews(v.views)}
-                  </div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    color: "#333",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    lineHeight: "1.3",
+                  }}
+                >
+                  {v.title}
                 </div>
-              </button>
-            ))}
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#888",
+                    marginTop: "2px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {v.channelName}
+                </div>
+                <div style={{ fontSize: "10px", color: "#aaa" }}>
+                  {formatViews(v.views)} views
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>
