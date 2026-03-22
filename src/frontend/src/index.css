@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+    /* Classic YouTube white background */
+    --background: 1 0 0;
+    --foreground: 0.22 0 0;
+    --card: 1 0 0;
+    --card-foreground: 0.22 0 0;
+    --popover: 1 0 0;
+    --popover-foreground: 0.22 0 0;
+    /* Red primary */
+    --primary: 0.43 0.21 27;
+    --primary-foreground: 1 0 0;
+    /* Light gray secondary */
+    --secondary: 0.97 0 0;
+    --secondary-foreground: 0.22 0 0;
+    --muted: 0.96 0 0;
+    --muted-foreground: 0.47 0 0;
+    --accent: 0.94 0 0;
+    --accent-foreground: 0.22 0 0;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 1 0 0;
+    --border: 0.89 0 0;
+    --input: 0.89 0 0;
+    --ring: 0.43 0.21 27;
+    /* YouTube red */
+    --yt-red: 0.43 0.21 27;
+    --yt-red-dark: 0.35 0.19 27;
+    --yt-sidebar: 0.974 0 0;
+    --yt-link: 0.47 0.13 258;
+    --yt-text-gray: 0.47 0 0;
+    --yt-border: 0.89 0 0;
+    --chart-1: 0.646 0.222 41.116;
+    --chart-2: 0.6 0.118 184.704;
+    --chart-3: 0.398 0.07 227.392;
+    --chart-4: 0.828 0.189 84.429;
+    --chart-5: 0.769 0.188 70.08;
+    --sidebar: 0.974 0 0;
+    --sidebar-foreground: 0.22 0 0;
+    --sidebar-primary: 0.43 0.21 27;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.94 0 0;
+    --sidebar-accent-foreground: 0.22 0 0;
+    --sidebar-border: 0.89 0 0;
+    --sidebar-ring: 0.43 0.21 27;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Arial", "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 13px;
+  }
+}
+
+/* Classic YouTube link style */
+a {
+  color: oklch(var(--yt-link));
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  color: oklch(var(--yt-link));
+}
+
+/* YouTube classic scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(0.97 0 0);
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.75 0 0);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0 0);
+}
