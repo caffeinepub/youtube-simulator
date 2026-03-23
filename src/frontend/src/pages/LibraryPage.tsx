@@ -1,20 +1,48 @@
+import { useState } from "react";
 import type { Page } from "../App";
+import { mockVideos } from "../data/mockVideos";
+import { useGame } from "../store/gameStore";
 
 interface LibraryPageProps {
   navigate: (page: Page) => void;
 }
 
 export default function LibraryPage({ navigate }: LibraryPageProps) {
-  const playlists = [
-    { icon: "\u23f0", name: "Watch Later", count: 0, color: "#1565c0" },
-    { icon: "\ud83d\udc4d", name: "Liked Videos", count: 0, color: "#cc0000" },
-    {
-      icon: "\ud83d\udcbe",
-      name: "Saved Playlists",
-      count: 0,
-      color: "#2e7d32",
-    },
-  ];
+  const {
+    playlists,
+    createPlaylist,
+    removeFromPlaylist,
+    deletePlaylist,
+    videos: playerVideos,
+  } = useGame();
+  const [newName, setNewName] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const getVideoInfo = (videoId: string) => {
+    const mock = mockVideos.find((v) => v.id === videoId);
+    if (mock) return { title: mock.title, thumbnail: mock.thumbnail };
+    const pv = playerVideos.find((v) => v.id === videoId);
+    if (pv) return { title: pv.title, thumbnail: pv.thumbnailUrl };
+    return null;
+  };
+
+  const handleCreate = () => {
+    if (!newName.trim()) return;
+    createPlaylist(newName.trim());
+    setNewName("");
+    setShowCreate(false);
+  };
+
+  const btnStyle: React.CSSProperties = {
+    padding: "4px 10px",
+    backgroundColor: "#f0f0f0",
+    border: "1px solid #c0c0c0",
+    borderRadius: "2px",
+    cursor: "pointer",
+    fontSize: "11px",
+  };
+
   return (
     <div>
       <div
@@ -22,6 +50,9 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
           borderBottom: "2px solid #cc0000",
           marginBottom: "16px",
           paddingBottom: "4px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         <h2
@@ -32,78 +63,294 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
             margin: 0,
           }}
         >
-          \ud83d\udcda Library
+          &#x1F4DA; Library &amp; Playlists
         </h2>
+        <button
+          type="button"
+          onClick={() => setShowCreate(true)}
+          style={{
+            padding: "5px 12px",
+            backgroundColor: "#cc0000",
+            border: "1px solid #aa0000",
+            borderRadius: "2px",
+            cursor: "pointer",
+            fontSize: "12px",
+            color: "#fff",
+            fontWeight: "bold",
+          }}
+          data-ocid="library.primary_button"
+        >
+          + New Playlist
+        </button>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          gap: "14px",
-          marginBottom: "24px",
-        }}
-      >
-        {playlists.map((pl) => (
-          <div
-            key={pl.name}
+
+      {showCreate && (
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            marginBottom: "16px",
+            alignItems: "center",
+          }}
+        >
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            placeholder="Playlist name..."
             style={{
-              border: "1px solid #e0e0e0",
-              borderRadius: "4px",
-              overflow: "hidden",
-              cursor: "pointer",
+              flex: 1,
+              padding: "5px 8px",
+              border: "1px solid #c0c0c0",
+              borderRadius: "2px",
+              fontSize: "13px",
+              outline: "none",
             }}
+            data-ocid="library.input"
+          />
+          <button
+            type="button"
+            onClick={handleCreate}
+            style={{
+              ...btnStyle,
+              backgroundColor: "#cc0000",
+              color: "#fff",
+              border: "1px solid #aa0000",
+            }}
+            data-ocid="library.submit_button"
           >
-            <div
-              style={{
-                height: "80px",
-                backgroundColor: pl.color,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "36px",
-              }}
-            >
-              {pl.icon}
-            </div>
-            <div style={{ padding: "10px" }}>
+            Create
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowCreate(false)}
+            style={btnStyle}
+            data-ocid="library.cancel_button"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {playlists.length === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "32px",
+            color: "#888",
+            backgroundColor: "#f8f8f8",
+            border: "1px solid #e0e0e0",
+            borderRadius: "3px",
+          }}
+          data-ocid="library.empty_state"
+        >
+          <div style={{ fontSize: "32px", marginBottom: "8px" }}>&#x1F4DA;</div>
+          <div style={{ fontSize: "13px" }}>No playlists yet. Create one!</div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {playlists.map((pl, idx) => {
+            const firstVideo = pl.videoIds[0]
+              ? getVideoInfo(pl.videoIds[0])
+              : null;
+            const isExpanded = expandedId === pl.id;
+            return (
               <div
-                style={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}
+                key={pl.id}
+                style={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "3px",
+                  overflow: "hidden",
+                }}
+                data-ocid={`library.item.${idx + 1}`}
               >
-                {pl.name}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px",
+                    backgroundColor: "#f8f8f8",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "80px",
+                      height: "46px",
+                      backgroundColor: "#1565c0",
+                      borderRadius: "2px",
+                      flexShrink: 0,
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {firstVideo ? (
+                      <img
+                        src={firstVideo.thumbnail}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: "20px" }}>&#x1F3B5;</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        color: "#333",
+                      }}
+                    >
+                      {pl.name}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#888" }}>
+                      {pl.videoIds.length} videos
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {pl.videoIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate({ name: "watch", videoId: pl.videoIds[0] })
+                        }
+                        style={{
+                          ...btnStyle,
+                          backgroundColor: "#cc0000",
+                          color: "#fff",
+                          border: "1px solid #aa0000",
+                        }}
+                        data-ocid="library.primary_button"
+                      >
+                        &#x25B6; Watch All
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isExpanded ? null : pl.id)}
+                      style={btnStyle}
+                      data-ocid="library.toggle"
+                    >
+                      {isExpanded ? "&#x25B2; Hide" : "&#x25BC; Show"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deletePlaylist(pl.id)}
+                      style={{ ...btnStyle, color: "#cc0000" }}
+                      data-ocid="library.delete_button"
+                    >
+                      &#x1F5D1;
+                    </button>
+                  </div>
+                </div>
+                {isExpanded && (
+                  <div style={{ padding: "8px" }}>
+                    {pl.videoIds.length === 0 ? (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#aaa",
+                          textAlign: "center",
+                          padding: "12px",
+                        }}
+                      >
+                        No videos in this playlist yet.
+                      </div>
+                    ) : (
+                      pl.videoIds.map((vid) => {
+                        const info = getVideoInfo(vid);
+                        if (!info) return null;
+                        return (
+                          <div
+                            key={vid}
+                            style={{
+                              display: "flex",
+                              gap: "8px",
+                              alignItems: "center",
+                              padding: "4px 0",
+                              borderBottom: "1px solid #eee",
+                            }}
+                          >
+                            <img
+                              src={info.thumbnail}
+                              alt=""
+                              style={{
+                                width: "60px",
+                                height: "34px",
+                                objectFit: "cover",
+                                borderRadius: "2px",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate({ name: "watch", videoId: vid })
+                              }
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                flex: 1,
+                                textAlign: "left",
+                                fontSize: "12px",
+                                color: "#333",
+                              }}
+                            >
+                              {info.title}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeFromPlaylist(pl.id, vid)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#aaa",
+                                fontSize: "14px",
+                              }}
+                              data-ocid="library.delete_button"
+                            >
+                              &#x00D7;
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: "11px", color: "#888" }}>
-                {pl.count} videos
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ marginTop: "24px" }}>
+        <button
+          type="button"
+          onClick={() => navigate({ name: "home" })}
+          style={{
+            padding: "6px 14px",
+            backgroundColor: "#cc0000",
+            border: "1px solid #aa0000",
+            borderRadius: "2px",
+            cursor: "pointer",
+            fontSize: "12px",
+            color: "#fff",
+          }}
+          data-ocid="library.primary_button"
+        >
+          Browse Videos
+        </button>
       </div>
-      <div
-        style={{
-          textAlign: "center",
-          padding: "24px",
-          color: "#aaa",
-          fontSize: "12px",
-        }}
-      >
-        Playlists and saved videos will appear here in a future update.
-      </div>
-      <button
-        type="button"
-        onClick={() => navigate({ name: "home" })}
-        style={{
-          marginTop: "8px",
-          padding: "6px 14px",
-          backgroundColor: "#cc0000",
-          border: "1px solid #aa0000",
-          borderRadius: "2px",
-          cursor: "pointer",
-          fontSize: "12px",
-          color: "#fff",
-        }}
-      >
-        Browse Videos
-      </button>
     </div>
   );
 }

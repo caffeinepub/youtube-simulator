@@ -27,11 +27,537 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+const AWARD_TIERS = [
+  {
+    tier: "Silver",
+    threshold: 100000,
+    emoji: "🥈",
+    color: "#9e9e9e",
+    bg: "#f5f5f5",
+    label: "100K Play Button",
+  },
+  {
+    tier: "Gold",
+    threshold: 1000000,
+    emoji: "🥇",
+    color: "#ffd700",
+    bg: "#fffde7",
+    label: "1M Play Button",
+  },
+  {
+    tier: "Diamond",
+    threshold: 10000000,
+    emoji: "💎",
+    color: "#00bcd4",
+    bg: "#e0f7fa",
+    label: "10M Play Button",
+  },
+  {
+    tier: "Ruby",
+    threshold: 50000000,
+    emoji: "❤️",
+    color: "#e91e63",
+    bg: "#fce4ec",
+    label: "50M Play Button",
+  },
+  {
+    tier: "Custom",
+    threshold: 100000000,
+    emoji: "🏆",
+    color: "#cc0000",
+    bg: "#fff0f0",
+    label: "100M Custom Award",
+  },
+];
+
+function PollsSection() {
+  const { communityPolls, createPoll, votePoll } = useGame();
+  const [showModal, setShowModal] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [options, setOptions] = useState(["", ""]);
+
+  const handleSubmit = () => {
+    const validOptions = options.filter((o) => o.trim());
+    if (!question.trim() || validOptions.length < 2) {
+      toast.error("Question and at least 2 options required");
+      return;
+    }
+    createPoll(question.trim(), validOptions);
+    setQuestion("");
+    setOptions(["", ""]);
+    setShowModal(false);
+    toast.success("Poll created!");
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "12px",
+        }}
+      >
+        <span style={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}>
+          &#x1F4CA; Community Polls
+        </span>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          style={{
+            padding: "5px 12px",
+            backgroundColor: "#cc0000",
+            border: "1px solid #aa0000",
+            borderRadius: "2px",
+            cursor: "pointer",
+            fontSize: "12px",
+            color: "#fff",
+          }}
+          data-ocid="channel.primary_button"
+        >
+          + Create Poll
+        </button>
+      </div>
+
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              border: "1px solid #e0e0e0",
+              borderRadius: "4px",
+              maxWidth: "420px",
+              width: "100%",
+              overflow: "hidden",
+            }}
+            data-ocid="channel.modal"
+          >
+            <div
+              style={{
+                backgroundColor: "#cc0000",
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <span
+                style={{ color: "#fff", fontWeight: "bold", fontSize: "14px" }}
+              >
+                &#x1F4CA; Create Community Poll
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                }}
+                data-ocid="channel.close_button"
+              >
+                &#x00D7;
+              </button>
+            </div>
+            <div
+              style={{
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <div>
+                <div style={labelStyle}>Question</div>
+                <input
+                  type="text"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Ask your community something..."
+                  style={inputStyle}
+                  data-ocid="channel.input"
+                />
+              </div>
+              <div>
+                <div style={labelStyle}>Options</div>
+                {options.map((opt, optIdx) => (
+                  <div
+                    key={`opt-${opt || optIdx}`}
+                    style={{ display: "flex", gap: "6px", marginBottom: "6px" }}
+                  >
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) =>
+                        setOptions((prev) =>
+                          prev.map((o, j) =>
+                            j === optIdx ? e.target.value : o,
+                          ),
+                        )
+                      }
+                      placeholder={`Option ${optIdx + 1}`}
+                      style={{ ...inputStyle, flex: 1 }}
+                    />
+                    {options.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOptions((prev) =>
+                            prev.filter((_, j) => j !== optIdx),
+                          )
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#aaa",
+                          fontSize: "16px",
+                        }}
+                      >
+                        &#x00D7;
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {options.length < 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setOptions((prev) => [...prev, ""])}
+                    style={{
+                      fontSize: "12px",
+                      color: "#0066cc",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 0,
+                    }}
+                  >
+                    + Add option
+                  </button>
+                )}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  style={{
+                    padding: "6px 14px",
+                    backgroundColor: "#f0f0f0",
+                    border: "1px solid #c0c0c0",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                  data-ocid="channel.cancel_button"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  style={{
+                    padding: "6px 14px",
+                    backgroundColor: "#cc0000",
+                    border: "1px solid #aa0000",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: "#fff",
+                  }}
+                  data-ocid="channel.submit_button"
+                >
+                  Create Poll
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {communityPolls.length === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "24px",
+            color: "#888",
+            backgroundColor: "#f8f8f8",
+            border: "1px solid #e0e0e0",
+            borderRadius: "3px",
+            fontSize: "12px",
+          }}
+          data-ocid="channel.empty_state"
+        >
+          No polls yet. Create one to engage with your community!
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {communityPolls.map((poll) => {
+            const totalVotes = poll.options.reduce((s, o) => s + o.votes, 0);
+            const voted = poll.votedOptionIndex !== null;
+            return (
+              <div
+                key={poll.id}
+                style={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "3px",
+                  padding: "12px",
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                    color: "#333",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {poll.question}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                  }}
+                >
+                  {poll.options.map((opt, i) => {
+                    const pct =
+                      totalVotes > 0
+                        ? Math.round((opt.votes / totalVotes) * 100)
+                        : 0;
+                    const isChosen = poll.votedOptionIndex === i;
+                    return (
+                      <div key={`${poll.id}-opt-${i}`}>
+                        {!voted ? (
+                          <button
+                            type="button"
+                            onClick={() => votePoll(poll.id, i)}
+                            style={{
+                              width: "100%",
+                              padding: "7px 10px",
+                              border: "1px solid #c0c0c0",
+                              borderRadius: "2px",
+                              backgroundColor: "#fff",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              fontSize: "12px",
+                              color: "#333",
+                            }}
+                          >
+                            {opt.text}
+                          </button>
+                        ) : (
+                          <div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                fontSize: "12px",
+                                color: isChosen ? "#cc0000" : "#333",
+                                marginBottom: "3px",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontWeight: isChosen ? "bold" : "normal",
+                                }}
+                              >
+                                {isChosen ? "\u2713 " : ""}
+                                {opt.text}
+                              </span>
+                              <span>{pct}%</span>
+                            </div>
+                            <div
+                              style={{
+                                height: "6px",
+                                backgroundColor: "#e0e0e0",
+                                borderRadius: "3px",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  height: "100%",
+                                  width: `${pct}%`,
+                                  backgroundColor: isChosen
+                                    ? "#cc0000"
+                                    : "#1565c0",
+                                  borderRadius: "3px",
+                                  transition: "width 0.5s ease",
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div
+                  style={{ fontSize: "11px", color: "#888", marginTop: "8px" }}
+                >
+                  {totalVotes} votes
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AwardsSection({
+  subs,
+  earnedAwards,
+}: {
+  subs: number;
+  earnedAwards: Array<{ tier: string; unlockedAt: string }>;
+}) {
+  const earned = new Set(earnedAwards.map((a) => a.tier));
+
+  return (
+    <div>
+      <h3
+        style={{
+          fontSize: "13px",
+          fontWeight: "bold",
+          color: "#333",
+          margin: "0 0 4px",
+        }}
+      >
+        🏆 Creator Awards
+      </h3>
+      <p style={{ fontSize: "11px", color: "#888", margin: "0 0 16px" }}>
+        Earn play button awards as your channel grows.
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+          gap: "12px",
+        }}
+      >
+        {AWARD_TIERS.map((award) => {
+          const isEarned = earned.has(award.tier);
+          const awardData = earnedAwards.find((a) => a.tier === award.tier);
+          const progressPct = Math.min(100, (subs / award.threshold) * 100);
+          return (
+            <div
+              key={award.tier}
+              style={{
+                backgroundColor: isEarned ? award.bg : "#f8f8f8",
+                border: `2px solid ${isEarned ? award.color : "#e0e0e0"}`,
+                borderRadius: "4px",
+                padding: "14px 12px",
+                textAlign: "center",
+                opacity: isEarned ? 1 : 0.6,
+                transition: "all 0.3s",
+              }}
+              data-ocid={`channel.item.${AWARD_TIERS.indexOf(award) + 1}`}
+            >
+              <div style={{ fontSize: "36px", marginBottom: "6px" }}>
+                {award.emoji}
+              </div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  color: isEarned ? award.color : "#999",
+                  marginBottom: "2px",
+                }}
+              >
+                {award.tier}
+              </div>
+              <div
+                style={{ fontSize: "10px", color: "#888", marginBottom: "6px" }}
+              >
+                {award.label}
+              </div>
+              {isEarned ? (
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#2e7d32",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✓ Unlocked {awardData?.unlockedAt}
+                </div>
+              ) : (
+                <div>
+                  <div
+                    style={{
+                      height: "4px",
+                      backgroundColor: "#e0e0e0",
+                      borderRadius: "2px",
+                      overflow: "hidden",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${progressPct}%`,
+                        backgroundColor: award.color,
+                        borderRadius: "2px",
+                        transition: "width 0.5s",
+                      }}
+                    />
+                  </div>
+                  <div style={{ fontSize: "9px", color: "#bbb" }}>
+                    {subs.toLocaleString()} / {award.threshold.toLocaleString()}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function MyChannelPage({ navigate }: MyChannelPageProps) {
-  const { channel, videos, createChannel } = useGame();
+  const {
+    channel,
+    videos,
+    createChannel,
+    channelTrailer,
+    setChannelTrailer,
+    tipJarTotal,
+    earnedAwards,
+    verificationStatus,
+    requestVerification,
+  } = useGame();
   const [channelName, setChannelName] = useState("");
   const [bioChoice, setBioChoice] = useState(0);
   const [customBio, setCustomBio] = useState("");
+  const [activeTab, setActiveTab] = useState<"videos" | "community" | "awards">(
+    "videos",
+  );
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,7 +687,7 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
           <button
             type="submit"
             style={{
-              padding: "7px 18px",
+              padding: "8px 16px",
               backgroundColor: "#cc0000",
               border: "1px solid #aa0000",
               borderRadius: "2px",
@@ -169,8 +695,8 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               fontSize: "13px",
               color: "#fff",
               fontWeight: "bold",
-              width: "fit-content",
             }}
+            data-ocid="channel.submit_button"
           >
             Create Channel
           </button>
@@ -181,26 +707,324 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
 
   const totalViews = videos.reduce((s, v) => s + v.views, 0);
   const totalLikes = videos.reduce((s, v) => s + v.likes, 0);
+  const trailerVideo = channelTrailer
+    ? videos.find((v) => v.id === channelTrailer)
+    : null;
+
+  const handleVerifyRequest = () => {
+    requestVerification();
+    toast.success("🔄 Verification requested! Usually takes about 25 seconds.");
+  };
 
   return (
     <div>
-      {/* Banner */}
+      {/* Decorative header bar */}
       <div
         style={{
-          width: "100%",
-          height: "100px",
-          background: "linear-gradient(135deg, #cc0000 0%, #880000 100%)",
-          marginBottom: "12px",
-          borderRadius: "3px",
+          height: "80px",
+          backgroundColor: "#cc0000",
+          borderRadius: "4px 4px 0 0",
+          marginBottom: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "rgba(255,255,255,0.2)",
-          fontSize: "48px",
         }}
       >
-        \u25b6
+        <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "48px" }}>
+          &#x25B6;
+        </span>
       </div>
+
+      {/* Channel Trailer Section */}
+      <div
+        style={{
+          border: "1px solid #e0e0e0",
+          borderTop: "none",
+          padding: "12px",
+          marginBottom: "16px",
+          backgroundColor: "#fff",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "13px",
+            fontWeight: "bold",
+            color: "#333",
+            marginBottom: "8px",
+          }}
+        >
+          &#x1F3AC; Channel Trailer
+        </div>
+        {trailerVideo ? (
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <img
+              src={trailerVideo.thumbnailUrl}
+              alt={trailerVideo.title}
+              style={{
+                width: "100px",
+                height: "56px",
+                objectFit: "cover",
+                borderRadius: "2px",
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  color: "#333",
+                  marginBottom: "4px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {trailerVideo.title}
+              </div>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate({ name: "watch", videoId: trailerVideo.id })
+                  }
+                  style={{
+                    padding: "4px 10px",
+                    backgroundColor: "#cc0000",
+                    border: "1px solid #aa0000",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "11px",
+                    color: "#fff",
+                  }}
+                  data-ocid="channel.primary_button"
+                >
+                  &#x25B6; Watch Trailer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowTrailerModal(true)}
+                  style={{
+                    padding: "4px 10px",
+                    backgroundColor: "#f0f0f0",
+                    border: "1px solid #c0c0c0",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "11px",
+                  }}
+                  data-ocid="channel.edit_button"
+                >
+                  Change Trailer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChannelTrailer(null)}
+                  style={{
+                    padding: "4px 10px",
+                    backgroundColor: "#f0f0f0",
+                    border: "1px solid #c0c0c0",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "11px",
+                    color: "#cc0000",
+                  }}
+                  data-ocid="channel.delete_button"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "12px",
+              backgroundColor: "#f8f8f8",
+              border: "1px dashed #c0c0c0",
+              borderRadius: "3px",
+            }}
+          >
+            <span style={{ fontSize: "24px" }}>&#x1F3AC;</span>
+            <div>
+              <div
+                style={{ fontSize: "12px", color: "#555", marginBottom: "4px" }}
+              >
+                No channel trailer set. Add one to welcome new visitors!
+              </div>
+              {videos.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowTrailerModal(true)}
+                  style={{
+                    padding: "4px 10px",
+                    backgroundColor: "#cc0000",
+                    border: "1px solid #aa0000",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "11px",
+                    color: "#fff",
+                  }}
+                  data-ocid="channel.primary_button"
+                >
+                  &#x1F3AC; Set Channel Trailer
+                </button>
+              ) : (
+                <span style={{ fontSize: "12px", color: "#aaa" }}>
+                  Upload a video first to set a trailer.
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Trailer Modal */}
+      {showTrailerModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              border: "1px solid #e0e0e0",
+              borderRadius: "4px",
+              maxWidth: "480px",
+              width: "100%",
+              overflow: "hidden",
+            }}
+            data-ocid="channel.modal"
+          >
+            <div
+              style={{
+                backgroundColor: "#cc0000",
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <span
+                style={{ color: "#fff", fontWeight: "bold", fontSize: "14px" }}
+              >
+                &#x1F3AC; Choose Channel Trailer
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowTrailerModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                }}
+                data-ocid="channel.close_button"
+              >
+                &#x00D7;
+              </button>
+            </div>
+            <div
+              style={{ padding: "12px", maxHeight: "400px", overflowY: "auto" }}
+            >
+              {videos.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "24px",
+                    color: "#888",
+                  }}
+                >
+                  No videos uploaded yet.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  {videos.map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => {
+                        setChannelTrailer(v.id);
+                        setShowTrailerModal(false);
+                        toast.success("Trailer set!");
+                      }}
+                      style={{
+                        display: "flex",
+                        gap: "10px",
+                        alignItems: "center",
+                        padding: "8px",
+                        border: `1px solid ${channelTrailer === v.id ? "#cc0000" : "#e0e0e0"}`,
+                        borderRadius: "3px",
+                        cursor: "pointer",
+                        backgroundColor:
+                          channelTrailer === v.id ? "#fff5f5" : "#fafafa",
+                        textAlign: "left",
+                      }}
+                    >
+                      <img
+                        src={v.thumbnailUrl}
+                        alt={v.title}
+                        style={{
+                          width: "80px",
+                          height: "45px",
+                          objectFit: "cover",
+                          borderRadius: "2px",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            color: "#333",
+                            marginBottom: "2px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {v.title}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#888" }}>
+                          {formatViews(v.views)}
+                        </div>
+                      </div>
+                      {channelTrailer === v.id && (
+                        <span
+                          style={{
+                            color: "#cc0000",
+                            fontSize: "14px",
+                            flexShrink: 0,
+                          }}
+                        >
+                          &#x2713;
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Channel Info */}
       <div
@@ -231,16 +1055,59 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
           {channel.name[0]?.toUpperCase()}
         </div>
         <div style={{ flex: 1 }}>
-          <h1
+          <div
             style={{
-              fontSize: "18px",
-              fontWeight: "bold",
-              color: "#333",
-              margin: "0 0 4px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
             }}
           >
-            {channel.name}
-          </h1>
+            <h1
+              style={{
+                fontSize: "18px",
+                fontWeight: "bold",
+                color: "#333",
+                margin: "0 0 4px",
+              }}
+            >
+              {channel.name}
+            </h1>
+            {verificationStatus === "verified" && (
+              <span
+                title="Verified Channel"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "20px",
+                  height: "20px",
+                  backgroundColor: "#1976d2",
+                  borderRadius: "50%",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  flexShrink: 0,
+                }}
+              >
+                ✓
+              </span>
+            )}
+            {verificationStatus === "pending" && (
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: "#f57c00",
+                  backgroundColor: "#fff3e0",
+                  border: "1px solid #ffe0b2",
+                  borderRadius: "2px",
+                  padding: "2px 6px",
+                }}
+              >
+                🔄 Pending review...
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: "12px", color: "#888" }}>
             <AnimatedNumber value={channel.subscribers} /> subscribers &middot;{" "}
             {videos.length} videos
@@ -257,6 +1124,27 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               {channel.bio}
             </div>
           )}
+          {/* Verification request button */}
+          {channel.subscribers >= 10000 && verificationStatus === "none" && (
+            <button
+              type="button"
+              onClick={handleVerifyRequest}
+              style={{
+                marginTop: "6px",
+                padding: "4px 10px",
+                backgroundColor: "#1976d2",
+                border: "1px solid #1565c0",
+                borderRadius: "2px",
+                cursor: "pointer",
+                fontSize: "11px",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+              data-ocid="channel.secondary_button"
+            >
+              ✓ Request Verification
+            </button>
+          )}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           <button
@@ -272,6 +1160,7 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               color: "#fff",
               fontWeight: "bold",
             }}
+            data-ocid="channel.primary_button"
           >
             + Upload Video
           </button>
@@ -288,8 +1177,9 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               color: "#fff",
               fontWeight: "bold",
             }}
+            data-ocid="channel.secondary_button"
           >
-            \ud83c\udfa8 Studio
+            &#x1F3A8; Studio
           </button>
         </div>
       </div>
@@ -300,15 +1190,15 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
           gap: "10px",
-          marginBottom: "20px",
+          marginBottom: "16px",
         }}
       >
         {(
           [
             { label: "Subscribers", numValue: channel.subscribers },
             { label: "Total Videos", strValue: String(videos.length) },
-            { label: "Total Views", strValue: totalViews.toLocaleString() },
-            { label: "Total Likes", strValue: totalLikes.toLocaleString() },
+            { label: "Total Views", numValue: totalViews },
+            { label: "Total Likes", numValue: totalLikes },
           ] as Array<{ label: string; numValue?: number; strValue?: string }>
         ).map((stat) => (
           <div
@@ -340,116 +1230,179 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
         ))}
       </div>
 
-      {/* Videos */}
-      <div
-        style={{
-          borderBottom: "2px solid #cc0000",
-          marginBottom: "12px",
-          paddingBottom: "4px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "13px",
-            fontWeight: "bold",
-            color: "#333",
-            margin: 0,
-          }}
-        >
-          Your Videos ({videos.length})
-        </h3>
-      </div>
-
-      {videos.length === 0 ? (
+      {/* Tip Jar card */}
+      {tipJarTotal > 0 && (
         <div
           style={{
-            textAlign: "center",
-            padding: "32px",
-            color: "#888",
-            backgroundColor: "#f8f8f8",
-            border: "1px solid #e0e0e0",
+            backgroundColor: "#fff8e1",
+            border: "1px solid #ffc107",
             borderRadius: "3px",
-          }}
-        >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>
-            \ud83c\udfa5
-          </div>
-          <div style={{ fontSize: "13px" }}>
-            No videos yet. Upload your first video!
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate({ name: "upload" })}
-            style={{
-              marginTop: "12px",
-              padding: "6px 16px",
-              backgroundColor: "#cc0000",
-              border: "1px solid #aa0000",
-              borderRadius: "2px",
-              cursor: "pointer",
-              fontSize: "12px",
-              color: "#fff",
-              fontWeight: "bold",
-            }}
-          >
-            Upload Now
-          </button>
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            padding: "12px 14px",
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
             gap: "12px",
           }}
         >
-          {videos.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => navigate({ name: "watch", videoId: v.id })}
-              style={{
-                background: "none",
-                border: "1px solid #e0e0e0",
-                borderRadius: "3px",
-                cursor: "pointer",
-                textAlign: "left",
-                overflow: "hidden",
-                padding: "0",
-              }}
+          <span style={{ fontSize: "28px" }}>🏺</span>
+          <div>
+            <div
+              style={{ fontSize: "12px", fontWeight: "bold", color: "#555" }}
             >
-              <img
-                src={v.thumbnailUrl}
-                alt={v.title}
-                style={{
-                  width: "100%",
-                  height: "100px",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-              <div style={{ padding: "6px 8px" }}>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    color: "#333",
-                    marginBottom: "3px",
-                    overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {v.title}
-                </div>
-                <div style={{ fontSize: "10px", color: "#888" }}>
-                  {formatViews(v.views)} &middot; \ud83d\udc4d {v.likes}
-                </div>
-              </div>
-            </button>
-          ))}
+              Tip Jar
+            </div>
+            <div
+              style={{ fontSize: "18px", fontWeight: "bold", color: "#2e7d32" }}
+            >
+              $<AnimatedNumber value={Math.round(tipJarTotal * 100) / 100} />
+            </div>
+            <div style={{ fontSize: "10px", color: "#888" }}>
+              Total tips received from viewers
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Tabs */}
+      <div
+        style={{
+          display: "flex",
+          gap: 0,
+          borderBottom: "2px solid #cc0000",
+          marginBottom: "12px",
+        }}
+      >
+        {(["videos", "community", "awards"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: "7px 16px",
+              border: "none",
+              borderBottom:
+                activeTab === tab
+                  ? "3px solid #cc0000"
+                  : "3px solid transparent",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: activeTab === tab ? "bold" : "normal",
+              color: activeTab === tab ? "#cc0000" : "#555",
+              marginBottom: "-2px",
+              whiteSpace: "nowrap",
+            }}
+            data-ocid="channel.tab"
+          >
+            {tab === "videos"
+              ? `\u{1F3A5} Videos (${videos.length})`
+              : tab === "community"
+                ? "\u{1F4CA} Community"
+                : "\u{1F3C6} Awards"}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "videos" &&
+        (videos.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "32px",
+              color: "#888",
+              backgroundColor: "#f8f8f8",
+              border: "1px solid #e0e0e0",
+              borderRadius: "3px",
+            }}
+            data-ocid="channel.empty_state"
+          >
+            <div style={{ fontSize: "32px", marginBottom: "8px" }}>
+              &#x1F3A5;
+            </div>
+            <div style={{ fontSize: "13px" }}>
+              No videos yet. Upload your first video!
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate({ name: "upload" })}
+              style={{
+                marginTop: "12px",
+                padding: "6px 16px",
+                backgroundColor: "#cc0000",
+                border: "1px solid #aa0000",
+                borderRadius: "2px",
+                cursor: "pointer",
+                fontSize: "12px",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+              data-ocid="channel.primary_button"
+            >
+              Upload Now
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: "12px",
+            }}
+          >
+            {videos.map((v, idx) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => navigate({ name: "watch", videoId: v.id })}
+                style={{
+                  background: "none",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  overflow: "hidden",
+                  padding: "0",
+                }}
+                data-ocid={`channel.item.${idx + 1}`}
+              >
+                <img
+                  src={v.thumbnailUrl}
+                  alt={v.title}
+                  style={{
+                    width: "100%",
+                    height: "100px",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+                <div style={{ padding: "6px 8px" }}>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                      color: "#333",
+                      marginBottom: "3px",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
+                    {v.title}
+                  </div>
+                  <div style={{ fontSize: "10px", color: "#888" }}>
+                    {formatViews(v.views)} &middot; &#x1F44D; {v.likes}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        ))}
+
+      {activeTab === "community" && <PollsSection />}
+
+      {activeTab === "awards" && (
+        <AwardsSection subs={channel.subscribers} earnedAwards={earnedAwards} />
       )}
     </div>
   );

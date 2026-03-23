@@ -3,6 +3,7 @@ import type { Page } from "../App";
 import VideoCard from "../components/VideoCard";
 import { mockVideos } from "../data/mockVideos";
 import { useGetAllVideos } from "../hooks/useQueries";
+import { useGame } from "../store/gameStore";
 
 interface HomePageProps {
   navigate: (page: Page) => void;
@@ -23,6 +24,7 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
   const { data: realVideos } = useGetAllVideos();
   const [activeCategory, setActiveCategory] = useState("All");
   const [showWhatsNew, setShowWhatsNew] = useState(true);
+  const { activeTrendingChallenge } = useGame();
 
   const matchesCategory = (cat: string, activeFilter: string) => {
     if (activeFilter === "All") return true;
@@ -47,6 +49,46 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
 
   return (
     <div>
+      {/* Trending Challenge Banner */}
+      {activeTrendingChallenge && (
+        <div
+          data-ocid="home.panel"
+          style={{
+            background: "linear-gradient(135deg, #ff6f00 0%, #cc0000 100%)",
+            borderRadius: "4px",
+            padding: "12px 16px",
+            marginBottom: "14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            color: "#fff",
+          }}
+        >
+          <span style={{ fontSize: "24px" }}>🔥</span>
+          <div>
+            <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+              Trending Challenge: {activeTrendingChallenge.tag}
+            </div>
+            <div style={{ fontSize: "11px", opacity: 0.9, marginTop: "2px" }}>
+              Upload a video now to join the challenge and get 3x view boost for{" "}
+              {activeTrendingChallenge.ticksRemaining} ticks!
+            </div>
+          </div>
+          <div
+            style={{
+              marginLeft: "auto",
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: "3px",
+              padding: "4px 10px",
+              fontSize: "11px",
+              fontWeight: "bold",
+            }}
+          >
+            {activeTrendingChallenge.ticksRemaining} ticks left
+          </div>
+        </div>
+      )}
+
       {/* What's New Banner */}
       {showWhatsNew && (
         <div

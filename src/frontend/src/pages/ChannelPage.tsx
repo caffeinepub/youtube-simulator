@@ -14,6 +14,8 @@ interface ChannelPageProps {
   channelId: string;
 }
 
+const TIP_AMOUNTS = [1, 5, 10];
+
 export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
   const isMockChannel = channelId.startsWith("ch-");
   const { data: allVideos } = useGetAllVideos();
@@ -21,6 +23,7 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
   const unsubscribe = useUnsubscribe();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subCount, setSubCount] = useState(1243);
+  const [showTipMenu, setShowTipMenu] = useState(false);
 
   const mockChannel = isMockChannel
     ? mockVideos.find((v) => v.channelId === channelId)
@@ -44,6 +47,11 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
     }
   };
 
+  const handleTip = (amount: number) => {
+    setShowTipMenu(false);
+    toast.success(`🏺 Tip of $${amount} sent to ${channelName}!`);
+  };
+
   return (
     <div>
       {/* Channel Banner */}
@@ -61,7 +69,7 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
           fontSize: "32px",
         }}
       >
-        ▶
+        &#x25B6;
       </div>
 
       {/* Channel Info */}
@@ -107,23 +115,96 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
             {subCount.toLocaleString()} subscribers
           </div>
         </div>
-        <button
-          type="button"
-          data-ocid="channel.subscribe.button"
-          onClick={handleSubscribe}
-          style={{
-            padding: "6px 14px",
-            backgroundColor: isSubscribed ? "#f0f0f0" : "#cc0000",
-            border: isSubscribed ? "1px solid #c0c0c0" : "1px solid #aa0000",
-            borderRadius: "2px",
-            cursor: "pointer",
-            fontSize: "12px",
-            color: isSubscribed ? "#333" : "#fff",
-            fontWeight: "bold",
-          }}
-        >
-          {isSubscribed ? "✓ Subscribed" : "Subscribe"}
-        </button>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            data-ocid="channel.subscribe.button"
+            onClick={handleSubscribe}
+            style={{
+              padding: "6px 14px",
+              backgroundColor: isSubscribed ? "#f0f0f0" : "#cc0000",
+              border: isSubscribed ? "1px solid #c0c0c0" : "1px solid #aa0000",
+              borderRadius: "2px",
+              cursor: "pointer",
+              fontSize: "12px",
+              color: isSubscribed ? "#333" : "#fff",
+              fontWeight: "bold",
+            }}
+          >
+            {isSubscribed ? "\u2713 Subscribed" : "Subscribe"}
+          </button>
+          {/* Feature 16: Tip button */}
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setShowTipMenu((v) => !v)}
+              style={{
+                padding: "6px 14px",
+                backgroundColor: "#fff8e1",
+                border: "1px solid #ffc107",
+                borderRadius: "2px",
+                cursor: "pointer",
+                fontSize: "12px",
+                color: "#555",
+                fontWeight: "bold",
+              }}
+              data-ocid="channel.button"
+            >
+              🏺 Tip
+            </button>
+            {showTipMenu && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  backgroundColor: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "3px",
+                  zIndex: 100,
+                  minWidth: "100px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  overflow: "hidden",
+                }}
+                data-ocid="channel.dropdown_menu"
+              >
+                <div
+                  style={{
+                    padding: "6px 10px",
+                    fontSize: "10px",
+                    color: "#888",
+                    borderBottom: "1px solid #eee",
+                    backgroundColor: "#f8f8f8",
+                  }}
+                >
+                  Send a tip
+                </div>
+                {TIP_AMOUNTS.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => handleTip(amount)}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      textAlign: "left",
+                      background: "#fff",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#333",
+                      borderBottom: "1px solid #eee",
+                      fontWeight: "bold",
+                    }}
+                    data-ocid="channel.button"
+                  >
+                    ${amount}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Channel Tabs */}

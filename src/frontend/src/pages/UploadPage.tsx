@@ -59,6 +59,11 @@ export default function UploadPage({ navigate }: UploadPageProps) {
   const [customAlbums, setCustomAlbums] = useState<string[]>([]);
   const [showCreateAlbum, setShowCreateAlbum] = useState(false);
   const [newAlbumName, setNewAlbumName] = useState("");
+  const [chapters, setChapters] = useState<
+    Array<{ time: string; title: string }>
+  >([{ time: "0:00", title: "Intro" }]);
+  const [showChapters, setShowChapters] = useState(false);
+  const [ageRestricted, setAgeRestricted] = useState(false);
 
   const handleCreateChannel = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,14 +104,20 @@ export default function UploadPage({ navigate }: UploadPageProps) {
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+    const finalTags =
+      isShort && !tagArray.includes("#Shorts")
+        ? [...tagArray, "#Shorts"]
+        : tagArray;
     uploadVideo({
       title: title.trim(),
       description,
-      tags: tagArray,
+      tags: finalTags,
       category,
       thumbnailUrl: selectedThumbnailUrl,
       presetVideoId: selectedVideoId,
       isShort,
+      ageRestricted,
+      chapters: chapters.filter((c) => c.time.trim() && c.title.trim()),
     });
     toast.success(`"${title}" uploaded successfully!`);
     navigate({ name: "mychannel" });
@@ -603,6 +614,50 @@ export default function UploadPage({ navigate }: UploadPageProps) {
           />
         </div>
 
+        {/* Age Restriction */}
+        <div
+          style={{
+            backgroundColor: "#fff5f5",
+            border: "1px solid #ffcdd2",
+            borderRadius: "3px",
+            padding: "10px 12px",
+            marginBottom: "10px",
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+              fontSize: "12px",
+              color: "#c62828",
+              fontWeight: "bold",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={ageRestricted}
+              onChange={(e) => setAgeRestricted(e.target.checked)}
+              data-ocid="upload.checkbox"
+              style={{ cursor: "pointer" }}
+            />
+            🔞 Age-restricted content (18+)
+          </label>
+          {ageRestricted && (
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#888",
+                marginTop: "4px",
+                paddingLeft: "20px",
+              }}
+            >
+              This video will be marked 18+ and may have reduced view growth.
+            </div>
+          )}
+        </div>
+
         {/* Album */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
@@ -765,6 +820,94 @@ export default function UploadPage({ navigate }: UploadPageProps) {
             </button>
           </div>
         </div>
+
+        {/* Shorts tips when Short selected */}
+        {isShort && (
+          <div
+            style={{
+              ...sectionCard,
+              backgroundColor: "#fff8e1",
+              borderColor: "#ffc107",
+            }}
+          >
+            <div style={{ ...sectionLabel, color: "#e65100" }}>
+              &#x1F4F1; Short-form Tips
+            </div>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "16px",
+                fontSize: "12px",
+                color: "#555",
+                lineHeight: "1.8",
+              }}
+            >
+              <li>
+                Keep it under <strong>60 seconds</strong>
+              </li>
+              <li>
+                Use <strong>vertical (portrait)</strong> thumbnails
+              </li>
+              <li>
+                Hook viewers in the <strong>first 3 seconds</strong>
+              </li>
+              <li>Use trending sounds / music</li>
+            </ul>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginTop: "4px",
+              }}
+            >
+              <div
+                style={{
+                  width: "60px",
+                  aspectRatio: "9/16",
+                  backgroundColor: "#111",
+                  borderRadius: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontSize: "18px",
+                  flexShrink: 0,
+                }}
+              >
+                &#x1F4F1;
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#e65100",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Portrait preview (9:16)
+                </div>
+                <div style={{ fontSize: "11px", color: "#888" }}>
+                  Your Short will appear in vertical format
+                </div>
+                <div
+                  style={{
+                    marginTop: "4px",
+                    padding: "3px 8px",
+                    backgroundColor: "#cc0000",
+                    color: "#fff",
+                    borderRadius: "10px",
+                    fontSize: "11px",
+                    display: "inline-block",
+                    fontWeight: "bold",
+                  }}
+                >
+                  #Shorts
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Choose Video */}
         <div style={sectionCard}>
@@ -999,6 +1142,119 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Chapters */}
+        <div style={sectionCard}>
+          <button
+            type="button"
+            onClick={() => setShowChapters((v) => !v)}
+            style={{
+              ...sectionLabel,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              width: "100%",
+              textAlign: "left",
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            &#x1F4D1; Add Chapters {showChapters ? "\u25B2" : "\u25BC"}
+          </button>
+          {showChapters && (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+            >
+              <p style={{ fontSize: "11px", color: "#888", margin: 0 }}>
+                Add chapter markers (first must start at 0:00).
+              </p>
+              {chapters.map((ch, i) => (
+                <div
+                  key={`ci-${ch.time}-${ch.title || i}`}
+                  style={{ display: "flex", gap: "6px", alignItems: "center" }}
+                >
+                  <input
+                    type="text"
+                    value={ch.time}
+                    onChange={(e) =>
+                      setChapters((prev) =>
+                        prev.map((c, j) =>
+                          j === i ? { ...c, time: e.target.value } : c,
+                        ),
+                      )
+                    }
+                    placeholder="0:00"
+                    style={{
+                      width: "60px",
+                      padding: "5px 6px",
+                      border: "1px solid #d1d5db",
+                      fontSize: "12px",
+                      borderRadius: "4px",
+                      outline: "none",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={ch.title}
+                    onChange={(e) =>
+                      setChapters((prev) =>
+                        prev.map((c, j) =>
+                          j === i ? { ...c, title: e.target.value } : c,
+                        ),
+                      )
+                    }
+                    placeholder="Chapter title..."
+                    style={{
+                      flex: 1,
+                      padding: "5px 8px",
+                      border: "1px solid #d1d5db",
+                      fontSize: "12px",
+                      borderRadius: "4px",
+                      outline: "none",
+                    }}
+                  />
+                  {chapters.length > 1 && i > 0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setChapters((prev) => prev.filter((_, j) => j !== i))
+                      }
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#aaa",
+                        fontSize: "16px",
+                      }}
+                    >
+                      &#x00D7;
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setChapters((prev) => [...prev, { time: "", title: "" }])
+                }
+                style={{
+                  fontSize: "12px",
+                  color: "#0066cc",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  padding: 0,
+                }}
+              >
+                + Add Chapter
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Submit / Cancel */}

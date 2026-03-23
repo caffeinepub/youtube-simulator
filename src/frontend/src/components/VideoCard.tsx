@@ -3,6 +3,8 @@ import type { Page } from "../App";
 import type { Video } from "../backend.d";
 import type { MockVideo } from "../data/mockVideos";
 import { formatViews } from "../data/mockVideos";
+import { useGame } from "../store/gameStore";
+import AnimatedNumber from "./AnimatedNumber";
 
 type VideoCardProps = {
   navigate: (page: Page) => void;
@@ -37,6 +39,7 @@ export default function VideoCard({
   video,
 }: VideoCardProps) {
   const [hovered, setHovered] = useState(false);
+  const { addToQueue, videoQueue } = useGame();
 
   const channelName = type === "mock" ? video.channelName : video.title;
   const channelInitial = (type === "mock" ? video.channelName : video.title)
@@ -152,8 +155,32 @@ export default function VideoCard({
                 {v.channelName}
               </div>
               <div style={{ fontSize: "11px", color: "#888" }}>
-                {formatViews(v.views)} · {v.uploadDate}
+                <AnimatedNumber value={Number(v.views)} /> · {v.uploadDate}
               </div>
+              {hovered && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToQueue(v.id);
+                  }}
+                  style={{
+                    marginTop: "3px",
+                    padding: "2px 6px",
+                    backgroundColor: videoQueue.includes(v.id)
+                      ? "#e8f5e9"
+                      : "#f0f0f0",
+                    border: `1px solid ${videoQueue.includes(v.id) ? "#4caf50" : "#c0c0c0"}`,
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "10px",
+                    color: videoQueue.includes(v.id) ? "#2e7d32" : "#555",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {videoQueue.includes(v.id) ? "\u2713 Queued" : "\u002B Queue"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -257,7 +284,7 @@ export default function VideoCard({
               {v.title}
             </div>
             <div style={{ fontSize: "11px", color: "#888" }}>
-              {formatViews(v.views)}
+              <AnimatedNumber value={Number(v.views)} />
             </div>
           </div>
         </div>

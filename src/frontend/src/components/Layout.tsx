@@ -7,7 +7,9 @@ import {
   useState,
 } from "react";
 import type { Page } from "../App";
+import { mockVideos } from "../data/mockVideos";
 import { useGame } from "../store/gameStore";
+import AnimatedNumber from "./AnimatedNumber";
 
 interface LayoutProps {
   children: ReactNode;
@@ -53,6 +55,15 @@ export default function Layout({
     godModeUnlocked,
     notifications,
     markAllNotificationsRead,
+    videoQueue,
+    removeFromQueue,
+    clearQueue,
+    videos: playerVideos,
+    newGame,
+    notificationPreference,
+    setNotificationPreference,
+    creatorMode,
+    setCreatorMode,
   } = useGame();
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showGodModal, setShowGodModal] = useState(false);
@@ -62,6 +73,11 @@ export default function Layout({
   const versionClickCount = useRef(0);
   const versionClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
+  const [showNotifPref, setShowNotifPref] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   // God Mode boost animation state
   const [boostAnimating, setBoostAnimating] = useState(false);
@@ -81,6 +97,17 @@ export default function Layout({
     const handler = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -163,6 +190,7 @@ export default function Layout({
     { label: "\uD83D\uDD51 History", page: { name: "history" } },
     { label: "\uD83D\uDCDA Library", page: { name: "library" } },
     { label: "\uD83D\uDD2D Explore", page: { name: "explore" } },
+    { label: "\uD83D\uDD34 Live", page: { name: "live" } },
   ];
 
   const categories = [
@@ -374,7 +402,8 @@ export default function Layout({
                       letterSpacing: "-1px",
                     }}
                   >
-                    +{boostCurrent.toLocaleString()}
+                    + 
+                    <AnimatedNumber value={boostCurrent} speed="fast" />
                   </div>
                   <div
                     style={{
@@ -584,51 +613,138 @@ export default function Layout({
         </button>
 
         {/* Search */}
-        <form
-          onSubmit={handleSearch}
+        <div
+          ref={searchRef}
           style={{
             display: "flex",
             flex: 1,
             maxWidth: "500px",
             margin: "0 auto",
+            position: "relative",
           }}
         >
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search"
-            style={{
-              flex: 1,
-              padding: "5px 8px",
-              border: "1px solid #c0c0c0",
-              borderRight: "none",
-              fontSize: "13px",
-              outline: "none",
-              borderRadius: "2px 0 0 2px",
-              backgroundColor: "#ffffff",
-              minWidth: 0,
+          <form
+            onSubmit={(e) => {
+              handleSearch(e);
+              setShowSuggestions(false);
             }}
-            data-ocid="nav.search_input"
-          />
-          <button
-            type="submit"
-            style={{
-              padding: "5px 10px",
-              backgroundColor: "#f0f0f0",
-              border: "1px solid #c0c0c0",
-              cursor: "pointer",
-              fontSize: "13px",
-              borderRadius: "0 2px 2px 0",
-              display: "flex",
-              alignItems: "center",
-              flexShrink: 0,
-            }}
-            data-ocid="nav.button"
+            style={{ display: "flex", flex: 1 }}
           >
-            <Search size={14} color="#555" />
-          </button>
-        </form>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                onSearch(e.target.value);
+                setShowSuggestions(e.target.value.length > 0);
+              }}
+              onFocus={() => searchQuery.length > 0 && setShowSuggestions(true)}
+              onKeyDown={(e) => e.key === "Escape" && setShowSuggestions(false)}
+              placeholder="Search"
+              style={{
+                flex: 1,
+                padding: "5px 8px",
+                border: "1px solid #c0c0c0",
+                borderRight: "none",
+                fontSize: "13px",
+                outline: "none",
+                borderRadius: "2px 0 0 2px",
+                backgroundColor: "#ffffff",
+                minWidth: 0,
+              }}
+              data-ocid="nav.search_input"
+            />
+            <button
+              type="submit"
+              style={{
+                padding: "5px 10px",
+                backgroundColor: "#f0f0f0",
+                border: "1px solid #c0c0c0",
+                cursor: "pointer",
+                fontSize: "13px",
+                borderRadius: "0 2px 2px 0",
+                display: "flex",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+              data-ocid="nav.button"
+            >
+              <Search size={14} color="#555" />
+            </button>
+          </form>
+          {showSuggestions &&
+            searchQuery.length > 0 &&
+            (() => {
+              const q = searchQuery.toLowerCase();
+              const suggestions = [
+                ...mockVideos
+                  .filter((v) => v.title.toLowerCase().includes(q))
+                  .slice(0, 4)
+                  .map((v) => ({ id: v.id, title: v.title })),
+                ...playerVideos
+                  .filter((v) => v.title.toLowerCase().includes(q))
+                  .slice(0, 4)
+                  .map((v) => ({ id: v.id, title: v.title })),
+              ].slice(0, 8);
+              if (suggestions.length === 0) return null;
+              return (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    backgroundColor: "#fff",
+                    border: "1px solid #e0e0e0",
+                    borderTop: "none",
+                    borderRadius: "0 0 3px 3px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    zIndex: 300,
+                  }}
+                >
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        navigate({ name: "watch", videoId: s.id });
+                        setShowSuggestions(false);
+                        onSearch("");
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        width: "100%",
+                        padding: "7px 10px",
+                        border: "none",
+                        backgroundColor: "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontSize: "12px",
+                        color: "#333",
+                        borderBottom: "1px solid #f0f0f0",
+                      }}
+                    >
+                      <Search
+                        size={12}
+                        color="#aaa"
+                        style={{ flexShrink: 0 }}
+                      />
+                      <span
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {s.title}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
+        </div>
 
         {/* Right buttons */}
         <div
@@ -755,6 +871,275 @@ export default function Layout({
                       </div>
                     </div>
                   ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Notification Preference */}
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              title="Notification settings"
+              onClick={() => setShowNotifPref((v) => !v)}
+              style={{
+                background: "none",
+                border: "1px solid #c0c0c0",
+                borderRadius: "2px",
+                cursor: "pointer",
+                padding: "4px 6px",
+                fontSize: "12px",
+                color: "#555",
+                display: "flex",
+                alignItems: "center",
+              }}
+              data-ocid="notifications.button"
+            >
+              ⚙️
+            </button>
+            {showNotifPref && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 4px)",
+                  right: 0,
+                  backgroundColor: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "4px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  zIndex: 500,
+                  minWidth: "220px",
+                  padding: "8px 0",
+                }}
+                data-ocid="notifications.popover"
+              >
+                <div
+                  style={{
+                    padding: "6px 14px",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    color: "#888",
+                    borderBottom: "1px solid #f0f0f0",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Notification Settings
+                </div>
+                {(
+                  [
+                    { value: "all", label: "🔔 All notifications" },
+                    {
+                      value: "personalized",
+                      label: "🎯 Milestones & revenue only",
+                    },
+                    { value: "none", label: "🔕 None" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setNotificationPreference(opt.value);
+                      setShowNotifPref(false);
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "7px 14px",
+                      border: "none",
+                      backgroundColor:
+                        notificationPreference === opt.value
+                          ? "#fff5f5"
+                          : "transparent",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      color:
+                        notificationPreference === opt.value
+                          ? "#cc0000"
+                          : "#333",
+                      fontWeight:
+                        notificationPreference === opt.value
+                          ? "bold"
+                          : "normal",
+                    }}
+                    data-ocid="notifications.button"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Queue button */}
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setShowQueue((v) => !v)}
+              style={{
+                padding: "5px 10px",
+                backgroundColor: showQueue ? "#e8f5e9" : "#f0f0f0",
+                border: `1px solid ${showQueue ? "#4caf50" : "#c0c0c0"}`,
+                cursor: "pointer",
+                fontSize: "12px",
+                borderRadius: "2px",
+                color: "#333",
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+              data-ocid="nav.toggle"
+            >
+              &#x1F4CB;
+              {videoQueue.length > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-4px",
+                    right: "-4px",
+                    backgroundColor: "#1565c0",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: "14px",
+                    height: "14px",
+                    fontSize: "9px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {videoQueue.length}
+                </span>
+              )}
+            </button>
+            {showQueue && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  right: 0,
+                  backgroundColor: "#fff",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "4px",
+                  width: "280px",
+                  maxHeight: "360px",
+                  overflowY: "auto",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                  zIndex: 500,
+                }}
+              >
+                <div
+                  style={{
+                    padding: "8px 12px",
+                    borderBottom: "1px solid #f0f0f0",
+                    fontWeight: "bold",
+                    fontSize: "12px",
+                    color: "#333",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>&#x1F4CB; Queue ({videoQueue.length})</span>
+                  {videoQueue.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => clearQueue()}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "11px",
+                        color: "#cc0000",
+                      }}
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                {videoQueue.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "16px",
+                      textAlign: "center",
+                      fontSize: "12px",
+                      color: "#888",
+                    }}
+                  >
+                    Queue is empty
+                  </div>
+                ) : (
+                  videoQueue.map((vid, i) => {
+                    const mock = mockVideos.find((v) => v.id === vid);
+                    const player = playerVideos.find((v) => v.id === vid);
+                    const title = mock?.title ?? player?.title ?? vid;
+                    const thumb = mock?.thumbnail ?? player?.thumbnailUrl ?? "";
+                    return (
+                      <div
+                        key={vid}
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          alignItems: "center",
+                          padding: "6px 10px",
+                          borderBottom: "1px solid #f0f0f0",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            color: "#aaa",
+                            width: "12px",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+                        {thumb && (
+                          <img
+                            src={thumb}
+                            alt=""
+                            style={{
+                              width: "50px",
+                              height: "28px",
+                              objectFit: "cover",
+                              borderRadius: "2px",
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                        <span
+                          style={{
+                            flex: 1,
+                            fontSize: "11px",
+                            color: "#333",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {title}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromQueue(vid)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#aaa",
+                            fontSize: "14px",
+                            flexShrink: 0,
+                          }}
+                        >
+                          &#x00D7;
+                        </button>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             )}
@@ -943,9 +1328,63 @@ export default function Layout({
             </button>
           ))}
 
+          {/* Creator/Viewer Mode Toggle */}
+          <div
+            style={{
+              borderTop: "1px solid #e0e0e0",
+              margin: "8px 0",
+              paddingTop: "6px",
+              paddingBottom: "6px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setCreatorMode(!creatorMode)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                width: "100%",
+                padding: "5px 14px",
+                border: "none",
+                backgroundColor: "transparent",
+                cursor: "pointer",
+                fontSize: "11px",
+                color: creatorMode ? "#cc0000" : "#555",
+              }}
+              data-ocid="nav.toggle"
+            >
+              <span
+                style={{
+                  width: "28px",
+                  height: "14px",
+                  backgroundColor: creatorMode ? "#cc0000" : "#c0c0c0",
+                  borderRadius: "7px",
+                  position: "relative",
+                  transition: "background-color 0.2s",
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "2px",
+                    left: creatorMode ? "16px" : "2px",
+                    width: "10px",
+                    height: "10px",
+                    backgroundColor: "#fff",
+                    borderRadius: "50%",
+                    transition: "left 0.2s",
+                  }}
+                />
+              </span>
+              {creatorMode ? "🎨 Creator Mode" : "👁️ Viewer Mode"}
+            </button>
+          </div>
+
           <div style={{ borderTop: "1px solid #e0e0e0", margin: "8px 0" }} />
 
-          {channel && (
+          {channel && creatorMode && (
             <>
               <button
                 type="button"
@@ -1065,7 +1504,32 @@ export default function Layout({
               }}
               title={godModeUnlocked ? "God Mode Active" : ""}
             >
-              {godModeUnlocked ? "\u26A1 GOD MODE" : "v4.0"}
+              {godModeUnlocked ? "⚡ GOD MODE" : "v11.0"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  window.confirm("Start a new game? All progress will be lost!")
+                ) {
+                  newGame();
+                }
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                padding: "5px 14px",
+                fontSize: "11px",
+                color: "#cc0000",
+                cursor: "pointer",
+                background: "none",
+                border: "none",
+                borderTop: "1px solid #f0f0f0",
+              }}
+              data-ocid="nav.button"
+            >
+              \uD83D\uDD04 New Game
             </button>
           </div>
         </nav>
@@ -1105,6 +1569,104 @@ export default function Layout({
           </footer>
         </main>
       </div>
+
+      {/* Reset Game Dialog */}
+      {showResetDialog && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            zIndex: 2000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+          data-ocid="nav.modal"
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              border: "1px solid #e0e0e0",
+              borderRadius: "4px",
+              maxWidth: "380px",
+              width: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: "#c62828",
+                padding: "12px 16px",
+                color: "#fff",
+              }}
+            >
+              <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                ⚠️ Start New Game?
+              </div>
+            </div>
+            <div style={{ padding: "16px" }}>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#333",
+                  margin: "0 0 16px",
+                  lineHeight: 1.5,
+                }}
+              >
+                All your progress — channels, videos, subscribers, coins — will
+                be permanently deleted. This cannot be undone.
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowResetDialog(false)}
+                  style={{
+                    padding: "6px 16px",
+                    backgroundColor: "#f0f0f0",
+                    border: "1px solid #c0c0c0",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: "#555",
+                  }}
+                  data-ocid="nav.cancel_button"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    newGame();
+                    localStorage.removeItem("yt-sim-v11");
+                    setShowResetDialog(false);
+                  }}
+                  style={{
+                    padding: "6px 16px",
+                    backgroundColor: "#c62828",
+                    border: "none",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: "#fff",
+                    fontWeight: "bold",
+                  }}
+                  data-ocid="nav.confirm_button"
+                >
+                  🔄 Reset Everything
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
