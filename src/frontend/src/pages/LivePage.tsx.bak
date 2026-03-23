@@ -288,27 +288,18 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
   const [totalSuperChatEarned, setTotalSuperChatEarned] = useState(0);
   const [newSubsGained, setNewSubsGained] = useState(0);
   const [showGoLiveSetup, setShowGoLiveSetup] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const subscribersRef = useRef<number>(0);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const chatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const elapsedIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
 
-  // Auto-scroll chat within container only (never scroll the page)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: chatContainerRef is a stable ref
+  // Auto-scroll chat
+  // biome-ignore lint/correctness/useExhaustiveDependencies: chatEndRef is a stable ref
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
-
-  // Sync subscribersRef with current subscriber count
-  useEffect(() => {
-    subscribersRef.current = stateChannel?.subscribers || 0;
-  }, [stateChannel?.subscribers]);
 
   // AI viewers fluctuation for browse page
   useEffect(() => {
@@ -327,76 +318,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
 
   // Start streaming engine
   const startStreamEngine = useCallback(() => {
-    // Subscriber-based viewer growth
+    // Viewer growth
     viewerIntervalRef.current = setInterval(() => {
-      const subs = subscribersRef.current;
-      // Scale growth rate based on subscriber count
-      let baseGrowth: number;
-      let maxGrowth: number;
-      if (subs >= 40_000_000) {
-        baseGrowth = 80_000;
-        maxGrowth = 300_000;
-      } else if (subs >= 10_000_000) {
-        baseGrowth = 20_000;
-        maxGrowth = 100_000;
-      } else if (subs >= 1_000_000) {
-        baseGrowth = 3_000;
-        maxGrowth = 20_000;
-      } else if (subs >= 100_000) {
-        baseGrowth = 300;
-        maxGrowth = 2_000;
-      } else if (subs >= 10_000) {
-        baseGrowth = 50;
-        maxGrowth = 300;
-      } else if (subs >= 1_000) {
-        baseGrowth = 10;
-        maxGrowth = 60;
-      } else {
-        baseGrowth = 1;
-        maxGrowth = 8;
-      }
-
       setLiveViewers((prev) => {
-        // Natural fluctuation: 90% chance grow, 10% chance slight dip
-        const isDip = Math.random() < 0.1;
-        if (isDip) {
-          const dip = Math.floor(baseGrowth * 0.05 * Math.random());
-          return Math.max(0, prev - dip);
-        }
-        // Viral boost: occasionally spike
-        const isSpike = Math.random() < 0.05;
-        const multiplier = isSpike ? 3 + Math.random() * 2 : 1;
-        const growth = Math.floor(
-          (baseGrowth + Math.random() * (maxGrowth - baseGrowth)) * multiplier,
-        );
-        // Allow viewers to exceed subscriber count (viral streams)
+        const growth = Math.floor(Math.random() * 50) + 5;
         return prev + growth;
       });
-
-      // Auto-grow likes to ~60% of viewers (50-65% range)
-      setLikes((prevLikes) => {
-        // We can't directly access liveViewers here, so we track likes relative to viewers
-        // Likes tick up independently, they'll converge to ~60% over time
-        const subs2 = subscribersRef.current;
-        let likeGrowth: number;
-        if (subs2 >= 10_000_000)
-          likeGrowth = Math.floor(
-            baseGrowth * 0.6 * (0.9 + Math.random() * 0.2),
-          );
-        else
-          likeGrowth = Math.floor(
-            baseGrowth * 0.6 * (0.8 + Math.random() * 0.4),
-          );
-        return prevLikes + likeGrowth;
-      });
-
-      setNewSubsGained((prev) => {
-        const subChance = subs >= 1_000_000 ? 0.9 : subs >= 100_000 ? 0.8 : 0.6;
-        return (
-          prev +
-          (Math.random() < subChance ? Math.floor(1 + Math.random() * 3) : 0)
-        );
-      });
+      setNewSubsGained((prev) => prev + (Math.random() > 0.7 ? 1 : 0));
     }, 2000);
 
     // AI chat messages
@@ -1053,47 +981,6 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
         }
-        .live-layout {
-          display: flex;
-          height: 100vh;
-          overflow: hidden;
-        }
-        .live-video-col {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          overflow-y: auto;
-          min-width: 0;
-        }
-        .live-chat-col {
-          width: 360px;
-          flex-shrink: 0;
-          display: flex;
-          flex-direction: column;
-          background: #0f0f0f;
-          border-left: 1px solid #272727;
-          height: 100vh;
-          position: sticky;
-          top: 0;
-        }
-        @media (max-width: 768px) {
-          .live-layout {
-            flex-direction: column;
-            height: auto;
-            overflow: visible;
-          }
-          .live-video-col {
-            overflow: visible;
-          }
-          .live-chat-col {
-            width: 100%;
-            height: 60vh;
-            min-height: 400px;
-            position: static;
-            border-left: none;
-            border-top: 1px solid #272727;
-          }
-        }
       `}</style>
 
       {/* Super Chat Modal */}
@@ -1212,9 +1099,16 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
       )}
 
       {/* Main layout: video + chat */}
-      <div className="live-layout">
+      <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
         {/* LEFT: Video area */}
-        <div className="live-video-col">
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "auto",
+          }}
+        >
           {/* Video player area */}
           <div
             style={{
@@ -1615,7 +1509,19 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
         </div>
 
         {/* RIGHT: Chat panel */}
-        <div className="live-chat-col">
+        <div
+          style={{
+            width: 360,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            background: "#0f0f0f",
+            borderLeft: "1px solid #272727",
+            height: "100vh",
+            position: "sticky",
+            top: 0,
+          }}
+        >
           {/* Chat header */}
           <div
             style={{
@@ -1684,15 +1590,7 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
           )}
 
           {/* Chat messages */}
-          <div
-            ref={chatContainerRef}
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "8px 4px",
-              scrollBehavior: "smooth",
-            }}
-          >
+          <div style={{ flex: 1, overflowY: "auto", padding: "8px 4px" }}>
             {chatMessages.map((msg) => (
               <div
                 key={msg.id}
@@ -1815,6 +1713,7 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                 </div>
               </div>
             ))}
+            <div ref={chatEndRef} />
           </div>
 
           {/* Emoji picker */}
