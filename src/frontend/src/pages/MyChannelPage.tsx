@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Page } from "../App";
+import { AchievementPanel } from "../components/AchievementPanel";
 import AnimatedNumber from "../components/AnimatedNumber";
 import { formatViews } from "../data/mockVideos";
 import { DEFAULT_BIOS } from "../data/presets";
@@ -550,13 +551,16 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
     earnedAwards,
     verificationStatus,
     requestVerification,
+    level,
+    xp,
+    creatorBusiness,
   } = useGame();
   const [channelName, setChannelName] = useState("");
   const [bioChoice, setBioChoice] = useState(0);
   const [customBio, setCustomBio] = useState("");
-  const [activeTab, setActiveTab] = useState<"videos" | "community" | "awards">(
-    "videos",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "videos" | "community" | "awards" | "achievements"
+  >("videos");
   const [showTrailerModal, setShowTrailerModal] = useState(false);
 
   const handleCreate = (e: React.FormEvent) => {
@@ -569,6 +573,11 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
     createChannel(channelName.trim(), bio || DEFAULT_BIOS[0]);
     toast.success("Channel created!");
   };
+
+  const RANK_NAMES = ["Rookie", "Rising Star", "Creator", "Legend"];
+  const RANK_COLORS = ["#9ca3af", "#60a5fa", "#a855f7", "#eab308"];
+  const rankName = RANK_NAMES[Math.min(level, 3)];
+  const rankColor = RANK_COLORS[Math.min(level, 3)];
 
   if (!channel) {
     return (
@@ -1073,6 +1082,20 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
             >
               {channel.name}
             </h1>
+            <span
+              style={{
+                display: "inline-block",
+                padding: "2px 8px",
+                borderRadius: "99px",
+                fontSize: "11px",
+                fontWeight: "bold",
+                color: "#fff",
+                backgroundColor: rankColor,
+                flexShrink: 0,
+              }}
+            >
+              {rankName} · {xp.toLocaleString()} XP
+            </span>
             {verificationStatus === "verified" && (
               <span
                 title="Verified Channel"
@@ -1122,6 +1145,29 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               }}
             >
               {channel.bio}
+            </div>
+          )}
+          {creatorBusiness && (
+            <div
+              style={{
+                marginTop: "8px",
+                padding: "6px 10px",
+                background: "linear-gradient(90deg, #e8f5e9, #f1f8e9)",
+                border: "1px solid #a5d6a7",
+                borderRadius: "8px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                color: "#2e7d32",
+                fontWeight: 600,
+              }}
+            >
+              <span>📌 Promoting:</span>
+              <span>{creatorBusiness.name}</span>
+              <span style={{ opacity: 0.7, fontWeight: 400 }}>
+                · {creatorBusiness.businessType}
+              </span>
             </div>
           )}
           {/* Verification request button */}
@@ -1272,35 +1318,37 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
           marginBottom: "12px",
         }}
       >
-        {(["videos", "community", "awards"] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            style={{
-              padding: "7px 16px",
-              border: "none",
-              borderBottom:
-                activeTab === tab
-                  ? "3px solid #cc0000"
-                  : "3px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: activeTab === tab ? "bold" : "normal",
-              color: activeTab === tab ? "#cc0000" : "#555",
-              marginBottom: "-2px",
-              whiteSpace: "nowrap",
-            }}
-            data-ocid="channel.tab"
-          >
-            {tab === "videos"
-              ? `\u{1F3A5} Videos (${videos.length})`
-              : tab === "community"
-                ? "\u{1F4CA} Community"
-                : "\u{1F3C6} Awards"}
-          </button>
-        ))}
+        {(["videos", "community", "awards", "achievements"] as const).map(
+          (tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: "7px 16px",
+                border: "none",
+                borderBottom:
+                  activeTab === tab
+                    ? "3px solid #cc0000"
+                    : "3px solid transparent",
+                backgroundColor: "transparent",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: activeTab === tab ? "bold" : "normal",
+                color: activeTab === tab ? "#cc0000" : "#555",
+                marginBottom: "-2px",
+                whiteSpace: "nowrap",
+              }}
+              data-ocid="channel.tab"
+            >
+              {tab === "videos"
+                ? `\u{1F3A5} Videos (${videos.length})`
+                : tab === "community"
+                  ? "\u{1F4CA} Community"
+                  : "\u{1F3C6} Awards"}
+            </button>
+          ),
+        )}
       </div>
 
       {activeTab === "videos" &&
@@ -1403,6 +1451,11 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
 
       {activeTab === "awards" && (
         <AwardsSection subs={channel.subscribers} earnedAwards={earnedAwards} />
+      )}
+      {activeTab === "achievements" && (
+        <div style={{ padding: "8px 0" }}>
+          <AchievementPanel />
+        </div>
       )}
     </div>
   );

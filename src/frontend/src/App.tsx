@@ -1,10 +1,13 @@
 import { Toaster } from "@/components/ui/sonner";
 import { useCallback, useState } from "react";
 import AlgorithmEngine from "./components/AlgorithmEngine";
+import InstagramLayout from "./components/InstagramLayout";
 import Layout from "./components/Layout";
 import SponsorshipModal from "./components/SponsorshipModal";
+import ViralEventEngine from "./components/ViralEventEngine";
 import ChannelPage from "./pages/ChannelPage";
 import ExplorePage from "./pages/ExplorePage";
+import FanFestPage from "./pages/FanFestPage";
 import HistoryPage from "./pages/HistoryPage";
 import HomePage from "./pages/HomePage";
 import LibraryPage from "./pages/LibraryPage";
@@ -17,6 +20,7 @@ import TrendingPage from "./pages/TrendingPage";
 import UploadPage from "./pages/UploadPage";
 import WatchPage from "./pages/WatchPage";
 import { GameProvider } from "./store/gameStore";
+import { InstagramProvider } from "./store/instagramStore";
 import { SpeedContext } from "./store/speedStore";
 import type { SpeedLevel } from "./store/speedStore";
 
@@ -33,12 +37,14 @@ export type Page =
   | { name: "history" }
   | { name: "library" }
   | { name: "explore" }
-  | { name: "live" };
+  | { name: "live" }
+  | { name: "fanfest" };
 
 function AppInner() {
   const [page, setPage] = useState<Page>({ name: "home" });
   const [searchQuery, setSearchQuery] = useState("");
   const [speed, setSpeed] = useState<SpeedLevel>("medium");
+  const [isInstagramMode, setIsInstagramMode] = useState(false);
 
   const navigate = useCallback((p: Page) => {
     setPage(p);
@@ -73,6 +79,8 @@ function AppInner() {
         return <ExplorePage navigate={navigate} />;
       case "live":
         return <LivePage navigate={navigate} />;
+      case "fanfest":
+        return <FanFestPage navigate={navigate} />;
       default:
         return <HomePage navigate={navigate} searchQuery={searchQuery} />;
     }
@@ -81,15 +89,21 @@ function AppInner() {
   return (
     <SpeedContext.Provider value={{ speed, setSpeed }}>
       <AlgorithmEngine />
+      <ViralEventEngine />
       <SponsorshipModal />
-      <Layout
-        navigate={navigate}
-        currentPage={page.name}
-        searchQuery={searchQuery}
-        onSearch={setSearchQuery}
-      >
-        {renderPage()}
-      </Layout>
+      {isInstagramMode ? (
+        <InstagramLayout onSwitchToYouTube={() => setIsInstagramMode(false)} />
+      ) : (
+        <Layout
+          navigate={navigate}
+          currentPage={page.name}
+          searchQuery={searchQuery}
+          onSearch={setSearchQuery}
+          onSwitchToInstagram={() => setIsInstagramMode(true)}
+        >
+          {renderPage()}
+        </Layout>
+      )}
       <Toaster />
     </SpeedContext.Provider>
   );
@@ -98,7 +112,9 @@ function AppInner() {
 export default function App() {
   return (
     <GameProvider>
-      <AppInner />
+      <InstagramProvider>
+        <AppInner />
+      </InstagramProvider>
     </GameProvider>
   );
 }

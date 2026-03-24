@@ -1,18 +1,18 @@
-import {
-  AlbumIcon,
-  Check,
-  Clock,
-  Film,
-  ImageIcon,
-  Lightbulb,
-  Tag,
-  Upload,
-  Video,
-  X,
-} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Page } from "../App";
+import {
+  AlbumIcon,
+  CheckIcon,
+  ClockIcon,
+  CloseIcon,
+  FilmIcon,
+  ImageIcon,
+  LightbulbIcon,
+  TagIcon,
+  UploadIcon,
+  VideoIcon,
+} from "../components/Icons";
 import {
   DEFAULT_BIOS,
   DESCRIPTION_SUGGESTIONS,
@@ -38,7 +38,13 @@ const ALBUM_OPTIONS = [
 ];
 
 export default function UploadPage({ navigate }: UploadPageProps) {
-  const { channel, createChannel, uploadVideo } = useGame();
+  const {
+    channel,
+    createChannel,
+    uploadVideo,
+    creatorBusiness,
+    promoteBusiness,
+  } = useGame();
 
   // Channel creation state
   const [channelName, setChannelName] = useState("");
@@ -64,6 +70,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
   >([{ time: "0:00", title: "Intro" }]);
   const [showChapters, setShowChapters] = useState(false);
   const [ageRestricted, setAgeRestricted] = useState(false);
+  const [isBusinessPromo, setIsBusinessPromo] = useState(false);
 
   const handleCreateChannel = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +126,10 @@ export default function UploadPage({ navigate }: UploadPageProps) {
       ageRestricted,
       chapters: chapters.filter((c) => c.time.trim() && c.title.trim()),
     });
+    if (isBusinessPromo && creatorBusiness) {
+      promoteBusiness();
+      toast.success(`📣 Business promo boost applied to "${title}"!`);
+    }
     toast.success(`"${title}" uploaded successfully!`);
     navigate({ name: "mychannel" });
   };
@@ -198,7 +209,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               gap: "8px",
             }}
           >
-            <Video size={20} color="#cc0000" />
+            <VideoIcon size={20} color="#cc0000" />
             Create Your Channel First
           </h2>
           <p
@@ -318,7 +329,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               width: "fit-content",
             }}
           >
-            <Video size={15} /> Create Channel &amp; Continue
+            <VideoIcon size={15} /> Create Channel &amp; Continue
           </button>
         </form>
       </div>
@@ -349,7 +360,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
             gap: "8px",
           }}
         >
-          <Upload size={20} color="#cc0000" />
+          <UploadIcon size={20} color="#cc0000" />
           Upload a Video
         </h2>
         <button
@@ -384,7 +395,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
           }}
           data-ocid="upload.cancel_button"
         >
-          <X size={14} /> Cancel
+          <CloseIcon size={14} /> Cancel
         </button>
       </div>
 
@@ -395,7 +406,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
         {/* Title */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
-            <Film size={15} color="#cc0000" /> Video Title
+            <FilmIcon size={15} color="#cc0000" /> Video Title
             <span style={{ color: "#cc0000" }}>*</span>
           </div>
           <div style={{ display: "flex", gap: "6px", position: "relative" }}>
@@ -417,7 +428,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               }}
               style={suggestBtnStyle}
             >
-              <Lightbulb size={13} /> Suggest
+              <LightbulbIcon size={13} /> Suggest
             </button>
             {showTitleSuggestions && (
               <div
@@ -470,7 +481,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
         {/* Description */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
-            <Film size={15} color="#cc0000" /> Description
+            <FilmIcon size={15} color="#cc0000" /> Description
           </div>
           <div style={{ position: "relative" }}>
             <textarea
@@ -493,7 +504,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                 marginTop: "6px",
               }}
             >
-              <Lightbulb size={13} /> Suggest Description
+              <LightbulbIcon size={13} /> Suggest Description
             </button>
             {showDescSuggestions && (
               <div
@@ -542,7 +553,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
         {/* Category */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
-            <Tag size={15} color="#cc0000" /> Category
+            <TagIcon size={15} color="#cc0000" /> Category
           </div>
           <select
             id="vid-cat"
@@ -569,7 +580,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
         {/* Tags */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
-            <Tag size={15} color="#cc0000" /> Tags
+            <TagIcon size={15} color="#cc0000" /> Tags
             <span
               style={{ fontSize: "11px", color: "#888", fontWeight: "normal" }}
             >
@@ -644,6 +655,73 @@ export default function UploadPage({ navigate }: UploadPageProps) {
             />
             🔞 Age-restricted content (18+)
           </label>
+          {creatorBusiness && (
+            <button
+              type="button"
+              style={{
+                marginTop: "12px",
+                padding: "12px 14px",
+                background: isBusinessPromo ? "#e8f5e9" : "#fafafa",
+                border: `1px solid ${isBusinessPromo ? "#a5d6a7" : "#e0e0e0"}`,
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                cursor: "pointer",
+                width: "100%",
+                textAlign: "left",
+              }}
+              onClick={() => setIsBusinessPromo((v) => !v)}
+              data-ocid="upload.checkbox"
+            >
+              <div
+                style={{
+                  width: "18px",
+                  height: "18px",
+                  borderRadius: "4px",
+                  border: `2px solid ${isBusinessPromo ? "#2e7d32" : "#bbb"}`,
+                  background: isBusinessPromo ? "#2e7d32" : "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                {isBusinessPromo && (
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 5l2.5 2.5L8 3"
+                      stroke="#fff"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: isBusinessPromo ? "#2e7d32" : "#333",
+                  }}
+                >
+                  📣 Business Promo
+                </div>
+                <div style={{ fontSize: "11px", color: "#666" }}>
+                  Boost <strong>{creatorBusiness.name}</strong> revenue &amp;
+                  fame when this video is uploaded
+                </div>
+              </div>
+            </button>
+          )}
+
           {ageRestricted && (
             <div
               style={{
@@ -769,7 +847,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
         {/* Video Type Toggle */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
-            <Video size={15} color="#cc0000" /> Video Type
+            <VideoIcon size={15} color="#cc0000" /> Video Type
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
@@ -912,7 +990,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
         {/* Choose Video */}
         <div style={sectionCard}>
           <div style={sectionLabel}>
-            <Video size={15} color="#cc0000" /> Choose Video
+            <VideoIcon size={15} color="#cc0000" /> Choose Video
             <span style={{ color: "#cc0000" }}>*</span>
           </div>
           <p style={{ fontSize: "11px", color: "#888", margin: 0 }}>
@@ -997,7 +1075,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                         justifyContent: "center",
                       }}
                     >
-                      <Check size={12} />
+                      <CheckIcon size={12} />
                     </div>
                   )}
                 </div>
@@ -1047,7 +1125,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                 fontWeight: "600",
               }}
             >
-              <Clock size={14} color="#16a34a" />
+              <ClockIcon size={14} color="#16a34a" />
               Duration: {selectedVideo.duration}
             </div>
           )}
@@ -1119,7 +1197,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                       justifyContent: "center",
                     }}
                   >
-                    <Check size={11} />
+                    <CheckIcon size={11} />
                   </div>
                 )}
                 <div
@@ -1276,7 +1354,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
             }}
             data-ocid="upload.submit_button"
           >
-            <Upload size={15} /> Publish Video
+            <UploadIcon size={15} /> Publish Video
           </button>
           <button
             type="button"
@@ -1310,7 +1388,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
             }}
             data-ocid="upload.cancel_button"
           >
-            <X size={15} /> Cancel
+            <CloseIcon size={15} /> Cancel
           </button>
         </div>
       </form>

@@ -266,6 +266,7 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
   const [chatInput, setChatInput] = useState("");
   const [pinnedMessage, setPinnedMessage] = useState<ChatMessage | null>(null);
   const [liveViewers, setLiveViewers] = useState(0);
+  const liveViewersRef = useRef<number>(0);
   const [_liveStartTime, setLiveStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
@@ -309,6 +310,11 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
   useEffect(() => {
     subscribersRef.current = stateChannel?.subscribers || 0;
   }, [stateChannel?.subscribers]);
+
+  // Sync liveViewersRef so interval callbacks can read current value
+  useEffect(() => {
+    liveViewersRef.current = liveViewers;
+  }, [liveViewers]);
 
   // AI viewers fluctuation for browse page
   useEffect(() => {
@@ -391,11 +397,11 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
       });
 
       setNewSubsGained((prev) => {
-        const subChance = subs >= 1_000_000 ? 0.9 : subs >= 100_000 ? 0.8 : 0.6;
-        return (
-          prev +
-          (Math.random() < subChance ? Math.floor(1 + Math.random() * 3) : 0)
+        const viewers = liveViewersRef.current;
+        const subsFromLive = Math.floor(
+          viewers * 0.1 * (0.9 + Math.random() * 0.2),
         );
+        return prev + subsFromLive;
       });
     }, 2000);
 

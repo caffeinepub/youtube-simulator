@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Page } from "../App";
+import { AchievementPanel } from "../components/AchievementPanel";
 import AnimatedNumber from "../components/AnimatedNumber";
+import { BusinessTab } from "../components/BusinessTab";
+import { XPBar } from "../components/XPBar";
 import { formatViews } from "../data/mockVideos";
 import { useGame } from "../store/gameStore";
 
@@ -926,6 +929,23 @@ export default function StudioPage({ navigate }: StudioPageProps) {
     notificationPreference,
     creatorMode,
     setCreatorMode,
+    soundEffectsEnabled,
+    setSoundEffects,
+    creatorBusiness,
+    launchBusiness,
+    promoteBusiness,
+    runBusinessAds,
+    coins,
+    addProduct,
+    reviewProduct,
+    launchProduct,
+    shoutoutProduct,
+    hireStaff,
+    openBranch,
+    acceptBusinessSponsorship,
+    declineBusinessSponsorship,
+    createProductDrop,
+    promoteDrop,
   } = useGame();
   const [expandedVideoId, setExpandedVideoId] = useState<string | null>(null);
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
@@ -938,7 +958,9 @@ export default function StudioPage({ navigate }: StudioPageProps) {
     | "copyright"
     | "moderation"
     | "goals"
+    | "progress"
     | "danger"
+    | "business"
   >("videos");
   // End screen modal
   const [endScreenVideoId, setEndScreenVideoId] = useState<string | null>(null);
@@ -1061,6 +1083,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
       label: activeReports > 0 ? `🛡️ Mod (${activeReports})` : "🛡️ Moderation",
     },
     { id: "goals", label: "🎯 Goals" },
+    { id: "progress", label: "⭐ Progress" },
     { id: "danger", label: "⚠️ Danger Zone" },
   ] as const;
 
@@ -1596,6 +1619,90 @@ export default function StudioPage({ navigate }: StudioPageProps) {
       )}
 
       {/* Danger Zone Tab */}
+      {activeTab === "progress" && (
+        <div
+          style={{
+            padding: "16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+          }}
+        >
+          <XPBar />
+          <AchievementPanel />
+          <div
+            style={{
+              background: "#f9f9f9",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "16px",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "14px",
+                fontWeight: "bold",
+                marginBottom: "12px",
+              }}
+            >
+              Sound Effects
+            </h3>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <span style={{ fontSize: "13px", color: "#555" }}>
+                Enable sound effects (likes, subs, uploads)
+              </span>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={soundEffectsEnabled}
+                  onChange={(e) => setSoundEffects(e.target.checked)}
+                  data-ocid="studio.sound_effects.switch"
+                />
+                <span
+                  style={{
+                    fontSize: "13px",
+                    color: soundEffectsEnabled ? "#22c55e" : "#9ca3af",
+                  }}
+                >
+                  {soundEffectsEnabled ? "On" : "Off"}
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+      {activeTab === "business" && (
+        <BusinessTab
+          business={creatorBusiness ?? null}
+          coins={coins}
+          onLaunch={launchBusiness}
+          onPromote={promoteBusiness}
+          onRunAds={() => runBusinessAds(1000)}
+          onAddProduct={addProduct}
+          onReviewProduct={reviewProduct}
+          onLaunchProduct={launchProduct}
+          onShoutoutProduct={shoutoutProduct}
+          onHireStaff={hireStaff}
+          onOpenBranch={openBranch}
+          onAcceptBusinessSponsorship={acceptBusinessSponsorship}
+          onDeclineBusinessSponsorship={declineBusinessSponsorship}
+          onCreateProductDrop={createProductDrop}
+          onPromoteDrop={promoteDrop}
+        />
+      )}
       {activeTab === "danger" && (
         <div>
           <h3

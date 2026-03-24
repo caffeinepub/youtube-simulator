@@ -123,6 +123,84 @@ export interface TrendingChallenge {
   participatingVideoId?: string;
 }
 
+export interface ViralEvent {
+  id: string;
+  type: string;
+  firedAt: number;
+  description: string;
+}
+
+export interface CustomerReview {
+  id: string;
+  rating: number;
+  comment: string;
+  time: number;
+}
+
+export interface CompetitorBusiness {
+  name: string;
+  type: string;
+  customers: number;
+  revenue: number;
+  fame: number;
+  founded: number;
+}
+
+export interface BusinessDeal {
+  id: string;
+  brandName: string;
+  dealAmount: number;
+  revenueBoostDuration: number;
+  description: string;
+  offeredAt: number;
+}
+
+export interface ProductDrop {
+  name: string;
+  startedAt: number;
+  endsAt: number;
+  promoted: boolean;
+  claimed: boolean;
+}
+
+export interface ProductItem {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: "draft" | "in_review" | "approved" | "launched";
+  fame: number;
+  shoutouts: number;
+  reviewText: string;
+  createdAt: number;
+  launchedAt: number | null;
+  customerReviews: CustomerReview[];
+}
+
+export interface CreatorBusiness {
+  name: string;
+  businessType: string;
+  revenue: number;
+  reach: number;
+  customers: number;
+  lastPromoted: number | null;
+  adBoostUntil: number | null;
+  revenueBoostUntil: number | null;
+  milestones: number[];
+  customerMilestones: number[];
+  products: ProductItem[];
+  brandValue: number;
+  popularity: number;
+  fame: number;
+  staffCount: number;
+  branchCount: number;
+  competitors: CompetitorBusiness[];
+  pendingBusinessSponsorship: BusinessDeal | null;
+  businessSponsorshipHistory: BusinessDeal[];
+  lastSponsorshipOfferedAt: number | null;
+  activeProductDrop: ProductDrop | null;
+}
+
 export interface GameState {
   channel: PlayerChannel | null;
   videos: PlayerVideo[];
@@ -154,6 +232,20 @@ export interface GameState {
   achievedGoals: Array<{ target: number; achievedAt: string }>;
   notificationPreference: "all" | "personalized" | "none";
   creatorMode: boolean;
+  // Feature 33-37 (V15)
+  xp: number;
+  level: number;
+  coins: number;
+  achievements: string[];
+  loginStreak: number;
+  lastLoginDate: string | null;
+  soundEffectsEnabled: boolean;
+  // Version 18 state
+  viralEvents: ViralEvent[];
+  fanfestScore: number;
+  fanfestJoinedEvents: string[];
+  fanLoyaltyScore: number;
+  creatorBusiness: CreatorBusiness | null;
 }
 
 type GameAction =
@@ -263,9 +355,54 @@ type GameAction =
       type: "SET_NOTIFICATION_PREFERENCE";
       payload: { pref: "all" | "personalized" | "none" };
     }
-  | { type: "SET_CREATOR_MODE"; payload: { mode: boolean } };
+  | { type: "SET_CREATOR_MODE"; payload: { mode: boolean } }
+  // Feature 33-37 actions
+  | { type: "GAIN_XP"; payload: { amount: number } }
+  | { type: "GAIN_COINS"; payload: { amount: number } }
+  | { type: "UNLOCK_ACHIEVEMENT"; payload: { achievementId: string } }
+  | {
+      type: "CLAIM_DAILY_BONUS";
+      payload: { date: string; xp: number; coins: number };
+    }
+  | { type: "SET_SOUND_EFFECTS"; payload: { enabled: boolean } }
+  | {
+      type: "APPLY_VIRAL_EVENT";
+      payload: { eventType: string; data: Record<string, unknown> | null };
+    }
+  | {
+      type: "JOIN_FANFEST_EVENT";
+      payload: { eventId: string; xpReward: number; subBoost: number };
+    }
+  | {
+      type: "SPEND_COINS_GIFT";
+      payload: { cost: number; loyaltyBoost: number };
+    }
+  | { type: "LAUNCH_BUSINESS"; payload: { name: string; businessType: string } }
+  | { type: "TICK_BUSINESS" }
+  | { type: "PROMOTE_BUSINESS" }
+  | { type: "RUN_BUSINESS_ADS"; payload: { cost: number } }
+  | { type: "REACH_BUSINESS_MILESTONE"; payload: { amount: number } }
+  | {
+      type: "ADD_PRODUCT";
+      payload: { name: string; description: string; category: string };
+    }
+  | {
+      type: "REVIEW_PRODUCT";
+      payload: { productId: string; reviewText: string };
+    }
+  | { type: "LAUNCH_PRODUCT"; payload: { productId: string } }
+  | {
+      type: "SHOUTOUT_PRODUCT";
+      payload: { productId: string; channel: string };
+    }
+  | { type: "HIRE_STAFF" }
+  | { type: "OPEN_BRANCH" }
+  | { type: "ACCEPT_BUSINESS_SPONSORSHIP" }
+  | { type: "DECLINE_BUSINESS_SPONSORSHIP" }
+  | { type: "CREATE_PRODUCT_DROP"; payload: { name: string } }
+  | { type: "PROMOTE_DROP" };
 
-const STORAGE_KEY = "yt-sim-v11";
+const STORAGE_KEY = "yt-sim-v15";
 
 const COLORS = [
   "#cc0000",
@@ -306,6 +443,20 @@ function getInitialState(): GameState {
     achievedGoals: [],
     notificationPreference: "all",
     creatorMode: true,
+    // Feature 33-37
+    xp: 0,
+    level: 0,
+    coins: 0,
+    achievements: [],
+    loginStreak: 0,
+    lastLoginDate: null,
+    soundEffectsEnabled: true,
+    // Version 18
+    viralEvents: [],
+    fanfestScore: 0,
+    fanfestJoinedEvents: [],
+    fanLoyaltyScore: 0,
+    creatorBusiness: null,
   };
 }
 
@@ -347,7 +498,74 @@ function loadFromStorage(): GameState {
         notificationPreference:
           parsed.notificationPreference ?? base.notificationPreference,
         creatorMode: parsed.creatorMode ?? base.creatorMode,
+        // Feature 33-37
+        xp: parsed.xp ?? base.xp,
+        level: parsed.level ?? base.level,
+        coins: parsed.coins ?? base.coins,
+        achievements: parsed.achievements ?? base.achievements,
+        loginStreak: parsed.loginStreak ?? base.loginStreak,
+        lastLoginDate: parsed.lastLoginDate ?? base.lastLoginDate,
+        soundEffectsEnabled:
+          parsed.soundEffectsEnabled ?? base.soundEffectsEnabled,
+        // Version 18
+        viralEvents: parsed.viralEvents ?? base.viralEvents,
+        fanfestScore: parsed.fanfestScore ?? base.fanfestScore,
+        fanfestJoinedEvents:
+          parsed.fanfestJoinedEvents ?? base.fanfestJoinedEvents,
+        fanLoyaltyScore: parsed.fanLoyaltyScore ?? base.fanLoyaltyScore,
+        creatorBusiness: parsed.creatorBusiness
+          ? {
+              ...parsed.creatorBusiness,
+              products: (parsed.creatorBusiness.products ?? []).map(
+                (p: ProductItem) => ({
+                  ...p,
+                  customerReviews: p.customerReviews ?? [],
+                }),
+              ),
+              brandValue: parsed.creatorBusiness.brandValue ?? 0,
+              popularity: parsed.creatorBusiness.popularity ?? 0,
+              fame: parsed.creatorBusiness.fame ?? 0,
+              staffCount: parsed.creatorBusiness.staffCount ?? 1,
+              branchCount: parsed.creatorBusiness.branchCount ?? 1,
+              milestones: parsed.creatorBusiness.milestones ?? [],
+              customerMilestones:
+                parsed.creatorBusiness.customerMilestones ?? [],
+              competitors: parsed.creatorBusiness.competitors ?? [],
+              pendingBusinessSponsorship:
+                parsed.creatorBusiness.pendingBusinessSponsorship ?? null,
+              businessSponsorshipHistory:
+                parsed.creatorBusiness.businessSponsorshipHistory ?? [],
+              lastSponsorshipOfferedAt:
+                parsed.creatorBusiness.lastSponsorshipOfferedAt ?? null,
+              activeProductDrop:
+                parsed.creatorBusiness.activeProductDrop ?? null,
+            }
+          : base.creatorBusiness,
       };
+    }
+    // Migrate from v11
+    const v11Raw = localStorage.getItem("yt-sim-v11");
+    if (v11Raw) {
+      try {
+        const v11Parsed = JSON.parse(v11Raw) as Partial<GameState> & {
+          watchHistory?: unknown;
+        };
+        const base = getInitialState();
+        return {
+          ...base,
+          ...v11Parsed,
+          watchHistory: migrateHistory(v11Parsed.watchHistory),
+          xp: 0,
+          level: 0,
+          coins: 0,
+          achievements: [],
+          loginStreak: 0,
+          lastLoginDate: null,
+          soundEffectsEnabled: true,
+        };
+      } catch {
+        /* ignore */
+      }
     }
     // Migrate from v5
     const oldRaw = localStorage.getItem("yt-sim-v5");
@@ -380,6 +598,65 @@ function saveToStorage(state: GameState) {
   }
 }
 
+const COMPETITOR_NAMES_BY_TYPE: Record<string, string[]> = {
+  "Merch Store": [
+    "ThreadHouse Co.",
+    "Fan Drops Inc.",
+    "CreatorWear",
+    "MerchMania",
+    "PremiumFans",
+  ],
+  "Music Label": [
+    "BeatWave Records",
+    "SoundStorm Music",
+    "VibeLabel",
+    "HitFactory",
+    "AudioPeak",
+  ],
+  "Food Brand": [
+    "YumCreator",
+    "FlavorBurst",
+    "TasteMakers",
+    "SnackGenius",
+    "EatWithUs",
+  ],
+  "Tech Startup": [
+    "NextGenTech",
+    "ByteForge",
+    "PixelMind",
+    "CodeNova",
+    "TechPulse",
+  ],
+  "Gaming Cafe": [
+    "LevelUp Cafe",
+    "PixelArena",
+    "GameZone Hub",
+    "ProGaming Lounge",
+    "XP Station",
+  ],
+  "Clothing Brand": [
+    "StyleDrop",
+    "TrendSetters",
+    "UrbanThread",
+    "FashionPeak",
+    "WearItWell",
+  ],
+  "Beauty Brand": [
+    "GlowUp Co.",
+    "PureLux Beauty",
+    "FaceFwd",
+    "SkinFirst",
+    "BeautyByte",
+  ],
+  "Fitness Brand": [
+    "GainFactory",
+    "FitPulse",
+    "StrengthForge",
+    "ProFit Labs",
+    "CoreBrand",
+  ],
+};
+
 function reducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "CREATE_CHANNEL": {
@@ -393,8 +670,24 @@ function reducer(state: GameState, action: GameAction): GameState {
       };
       return { ...state, channel };
     }
-    case "UPLOAD_VIDEO":
-      return { ...state, videos: [...state.videos, action.payload] };
+    case "UPLOAD_VIDEO": {
+      const isFirst = state.videos.length === 0;
+      const newAchievements =
+        isFirst && !state.achievements.includes("first_upload")
+          ? [...state.achievements, "first_upload"]
+          : state.achievements;
+      const xpGain = isFirst ? 50 : 0;
+      const newXp = state.xp + xpGain;
+      const newLevel =
+        newXp >= 20000 ? 3 : newXp >= 5000 ? 2 : newXp >= 1000 ? 1 : 0;
+      return {
+        ...state,
+        videos: [...state.videos, action.payload],
+        achievements: newAchievements,
+        xp: newXp,
+        level: newLevel,
+      };
+    }
     case "ADD_VIEW":
       return {
         ...state,
@@ -598,8 +891,10 @@ function reducer(state: GameState, action: GameAction): GameState {
         const tickLikes = Math.round(tickViews * 0.6 + Math.random() * 0.4);
         return { ...v, views: v.views + tickViews, likes: v.likes + tickLikes };
       });
-      const totalViews = updatedVideos.reduce((s, v) => s + v.views, 0);
-      const subGain = Math.floor(totalViews * 0.0001 + Math.random() * 0.5);
+      const prevTotalViews = state.videos.reduce((s, v) => s + v.views, 0);
+      const newTickViews =
+        updatedVideos.reduce((s, v) => s + v.views, 0) - prevTotalViews;
+      const subGain = Math.floor(newTickViews * 0.4 + Math.random() * 0.5);
       return {
         ...state,
         videos: updatedVideos,
@@ -713,7 +1008,17 @@ function reducer(state: GameState, action: GameAction): GameState {
         createdAt: Date.now(),
         votedOptionIndex: null,
       };
-      return { ...state, communityPolls: [poll, ...state.communityPolls] };
+      const pollSubBoost = Math.floor((state.channel?.subscribers ?? 0) * 0.3);
+      return {
+        ...state,
+        communityPolls: [poll, ...state.communityPolls],
+        channel: state.channel
+          ? {
+              ...state.channel,
+              subscribers: state.channel.subscribers + pollSubBoost,
+            }
+          : state.channel,
+      };
     }
     case "VOTE_POLL":
       return {
@@ -1012,6 +1317,586 @@ function reducer(state: GameState, action: GameAction): GameState {
       return { ...state, notificationPreference: action.payload.pref };
     case "SET_CREATOR_MODE":
       return { ...state, creatorMode: action.payload.mode };
+    // Feature 33-37
+    case "GAIN_XP": {
+      const newXp = state.xp + action.payload.amount;
+      const level =
+        newXp >= 20000 ? 3 : newXp >= 5000 ? 2 : newXp >= 1000 ? 1 : 0;
+      return { ...state, xp: newXp, level };
+    }
+    case "GAIN_COINS":
+      return { ...state, coins: state.coins + action.payload.amount };
+    case "UNLOCK_ACHIEVEMENT":
+      if (state.achievements.includes(action.payload.achievementId))
+        return state;
+      return {
+        ...state,
+        achievements: [...state.achievements, action.payload.achievementId],
+      };
+    case "CLAIM_DAILY_BONUS": {
+      const newXp2 = state.xp + action.payload.xp;
+      const level2 =
+        newXp2 >= 20000 ? 3 : newXp2 >= 5000 ? 2 : newXp2 >= 1000 ? 1 : 0;
+      return {
+        ...state,
+        lastLoginDate: action.payload.date,
+        loginStreak: state.loginStreak + 1,
+        xp: newXp2,
+        level: level2,
+        coins: state.coins + action.payload.coins,
+      };
+    }
+    case "SET_SOUND_EFFECTS":
+      return { ...state, soundEffectsEnabled: action.payload.enabled };
+    case "APPLY_VIRAL_EVENT": {
+      const evType = action.payload.eventType;
+      const data = action.payload.data ?? {};
+      let newState = { ...state };
+      if (
+        evType === "big_channel_rec" ||
+        evType === "reddit_crosspost" ||
+        evType === "viral_overnight"
+      ) {
+        const vId = (data as { videoId?: string }).videoId;
+        const boost = (data as { viewBoost?: number }).viewBoost ?? 0;
+        if (vId) {
+          newState = {
+            ...newState,
+            videos: newState.videos.map((v) =>
+              v.id === vId
+                ? {
+                    ...v,
+                    views: v.views + boost,
+                    likes: v.likes + Math.round(boost * 0.6),
+                  }
+                : v,
+            ),
+          };
+        }
+      } else if (evType === "press_coverage") {
+        newState = {
+          ...newState,
+          videos: newState.videos.map((v) => ({
+            ...v,
+            views: Math.floor(v.views * 1.2),
+            likes: Math.floor(v.likes * 1.2),
+          })),
+        };
+      } else if (evType === "algorithm_audit") {
+        const isBoost = (data as { isBoost?: boolean }).isBoost ?? true;
+        const subs = newState.channel?.subscribers ?? 0;
+        const change = isBoost
+          ? Math.floor(subs * 0.3)
+          : Math.floor(subs * 0.1);
+        if (newState.channel) {
+          newState = {
+            ...newState,
+            channel: {
+              ...newState.channel,
+              subscribers: isBoost
+                ? newState.channel.subscribers + change
+                : Math.max(0, newState.channel.subscribers - change),
+            },
+          };
+        }
+      }
+      const viralEvent: ViralEvent = {
+        id: `ve-${Date.now()}`,
+        type: evType,
+        firedAt: Date.now(),
+        description: evType,
+      };
+      return {
+        ...newState,
+        viralEvents: [viralEvent, ...newState.viralEvents].slice(0, 50),
+      };
+    }
+    case "JOIN_FANFEST_EVENT": {
+      if (state.fanfestJoinedEvents.includes(action.payload.eventId))
+        return state;
+      const newSubs =
+        (state.channel?.subscribers ?? 0) + action.payload.subBoost;
+      return {
+        ...state,
+        fanfestJoinedEvents: [
+          ...state.fanfestJoinedEvents,
+          action.payload.eventId,
+        ],
+        fanfestScore:
+          state.fanfestScore +
+          action.payload.xpReward +
+          action.payload.subBoost,
+        xp: state.xp + action.payload.xpReward,
+        level: (() => {
+          const x = state.xp + action.payload.xpReward;
+          return x >= 20000 ? 3 : x >= 5000 ? 2 : x >= 1000 ? 1 : 0;
+        })(),
+        channel: state.channel
+          ? { ...state.channel, subscribers: newSubs }
+          : state.channel,
+      };
+    }
+    case "SPEND_COINS_GIFT": {
+      if (state.coins < action.payload.cost) return state;
+      return {
+        ...state,
+        coins: state.coins - action.payload.cost,
+        fanLoyaltyScore: Math.min(100, state.fanLoyaltyScore + 1),
+        fanfestScore: state.fanfestScore + 100,
+      };
+    }
+    case "LAUNCH_BUSINESS": {
+      if (state.creatorBusiness) return state;
+      const competitorNames = COMPETITOR_NAMES_BY_TYPE[
+        action.payload.businessType
+      ] ?? ["Rival Co.", "CompeteX", "TopDog Inc.", "MarketLeader", "BigRival"];
+      const now = Date.now();
+      const generatedCompetitors: CompetitorBusiness[] = competitorNames.map(
+        (n, i) => ({
+          name: n,
+          type: action.payload.businessType,
+          customers: Math.floor(Math.random() * 5000) + (i + 1) * 1000,
+          revenue: Math.floor(Math.random() * 50000) + (i + 1) * 10000,
+          fame: Math.floor(Math.random() * 500) + (i + 1) * 100,
+          founded: now - Math.floor(Math.random() * 86400000 * 30),
+        }),
+      );
+      const biz: CreatorBusiness = {
+        name: action.payload.name,
+        businessType: action.payload.businessType,
+        revenue: 0,
+        reach: 0,
+        customers: 0,
+        lastPromoted: null,
+        adBoostUntil: null,
+        revenueBoostUntil: null,
+        milestones: [],
+        customerMilestones: [],
+        products: [],
+        brandValue: 0,
+        popularity: 0,
+        fame: 0,
+        staffCount: 1,
+        branchCount: 1,
+        competitors: generatedCompetitors,
+        pendingBusinessSponsorship: null,
+        businessSponsorshipHistory: [],
+        lastSponsorshipOfferedAt: null,
+        activeProductDrop: null,
+      };
+      return { ...state, creatorBusiness: biz };
+    }
+    case "TICK_BUSINESS": {
+      if (!state.creatorBusiness || !state.channel) return state;
+      const subs = state.channel.subscribers;
+      const totalViews = state.videos.reduce((s, v) => s + v.views, 0);
+      const adBoostActive =
+        state.creatorBusiness.adBoostUntil &&
+        Date.now() < state.creatorBusiness.adBoostUntil;
+      const revenueBoostActive =
+        state.creatorBusiness.revenueBoostUntil &&
+        Date.now() < state.creatorBusiness.revenueBoostUntil;
+      const baseTick = Math.max(
+        1,
+        Math.floor(subs * 0.0001 + Math.random() * 2),
+      );
+      const revTick = revenueBoostActive
+        ? Math.floor(baseTick * 1.2)
+        : baseTick;
+      const reachTick = adBoostActive
+        ? Math.floor(totalViews * 0.001 + 500)
+        : Math.floor(totalViews * 0.0005 + 100);
+      const staffMult = 1 + (state.creatorBusiness.staffCount ?? 1) * 0.1;
+      const branchCount = state.creatorBusiness.branchCount ?? 1;
+      const custTick = Math.floor(subs / 10 / 100) * branchCount;
+      const revTickFinal = Math.floor(revTick * staffMult);
+      const newCustomers = state.creatorBusiness.customers + custTick;
+
+      // AI customer reviews for launched products
+      const REVIEW_COMMENTS = [
+        "Great product!",
+        "Totally worth it",
+        "Exceeded my expectations",
+        "Fast delivery!",
+        "Would buy again",
+        "Amazing quality",
+        "Value for money",
+        "My favorite purchase",
+        "Highly recommend!",
+        "Decent but pricey",
+        "Not what I expected",
+        "Pretty good overall",
+        "5 stars all day",
+        "The creator really put effort in",
+        "Legit quality",
+        "Impressive for the price",
+        "Bought this for my friend too",
+        "Will be back for more",
+        "Solid product",
+        "Loved it",
+        "Exceeded my expectations!",
+        "Super happy with this",
+        "Top notch quality",
+        "Worth every penny",
+        "Brilliant product!",
+      ];
+      const updatedProductsWithReviews = (
+        state.creatorBusiness.products ?? []
+      ).map((p) => {
+        if (p.status !== "launched") return p;
+        const reviews = p.customerReviews ?? [];
+        if (reviews.length >= 50) return p;
+        if (Math.random() > 0.15) return p;
+        const rng = Math.random();
+        const rating =
+          rng < 0.1 ? 1 : rng < 0.2 ? 2 : rng < 0.4 ? 3 : rng < 0.7 ? 4 : 5;
+        const comment =
+          REVIEW_COMMENTS[Math.floor(Math.random() * REVIEW_COMMENTS.length)];
+        return {
+          ...p,
+          customerReviews: [
+            ...reviews,
+            {
+              id: Date.now().toString() + Math.random(),
+              rating,
+              comment,
+              time: Date.now(),
+            },
+          ],
+        };
+      });
+
+      // Customer milestones check
+      const CUSTOMER_MILESTONES = [1000, 10000, 100000];
+      const existingCustMilestones =
+        state.creatorBusiness.customerMilestones ?? [];
+      const newCustMilestones = [...existingCustMilestones];
+      const newNotifications = [...state.notifications];
+      for (const m of CUSTOMER_MILESTONES) {
+        if (!existingCustMilestones.includes(m) && newCustomers >= m) {
+          newCustMilestones.push(m);
+          newNotifications.push({
+            id: `cust-milestone-${m}-${Date.now()}`,
+            type: "milestone",
+            message: `🎉 Business milestone: ${m.toLocaleString()} customers!`,
+            read: false,
+            timestamp: Date.now(),
+          });
+        }
+      }
+
+      // Grow competitor stats slowly each tick
+      const updatedCompetitors = (state.creatorBusiness.competitors ?? []).map(
+        (c) => ({
+          ...c,
+          customers: c.customers + Math.floor(Math.random() * 5 + 1),
+          revenue: c.revenue + Math.floor(Math.random() * 100 + 10),
+          fame: c.fame + (Math.random() > 0.7 ? 1 : 0),
+        }),
+      );
+
+      // Auto-generate sponsorship offers based on fame + cooldown (~2 min = 120000ms)
+      const currentFame = state.creatorBusiness.fame ?? 0;
+      const lastOffered = state.creatorBusiness.lastSponsorshipOfferedAt ?? 0;
+      const hasPending = !!state.creatorBusiness.pendingBusinessSponsorship;
+      let pendingDeal = state.creatorBusiness.pendingBusinessSponsorship;
+      let lastOfferedAt = lastOffered;
+      if (
+        !hasPending &&
+        currentFame >= 500 &&
+        Date.now() - lastOffered > 120000
+      ) {
+        const SPONSOR_BRANDS = [
+          { name: "GadgetHub", desc: "Sponsor a product review series" },
+          { name: "StyleForge", desc: "Co-branded clothing collab" },
+          { name: "NutriBoost", desc: "Health supplement partnership" },
+          { name: "ByteWave", desc: "Tech accessories bundle deal" },
+          { name: "GlowSkin", desc: "Beauty product sponsorship" },
+          { name: "FitGear Pro", desc: "Fitness equipment placement" },
+          { name: "TasteWorld", desc: "Food subscription box deal" },
+          { name: "SoundPlus", desc: "Audio gear collaboration" },
+        ];
+        const brand =
+          SPONSOR_BRANDS[Math.floor(Math.random() * SPONSOR_BRANDS.length)];
+        pendingDeal = {
+          id: `biz-deal-${Date.now()}`,
+          brandName: brand.name,
+          dealAmount: Math.floor(currentFame * 2 + Math.random() * 5000 + 1000),
+          revenueBoostDuration: 60000,
+          description: brand.desc,
+          offeredAt: Date.now(),
+        };
+        lastOfferedAt = Date.now();
+      }
+
+      // Tick product drop countdown
+      let activeDrop = state.creatorBusiness.activeProductDrop ?? null;
+      if (activeDrop && !activeDrop.claimed) {
+        if (Date.now() >= activeDrop.endsAt) {
+          if (activeDrop.promoted) {
+            // Viral spike!
+            newNotifications.push({
+              id: `drop-success-${Date.now()}`,
+              type: "milestone" as const,
+              message: `🚀 Product Drop "${activeDrop.name}" went viral! Big sales spike!`,
+              read: false,
+              timestamp: Date.now(),
+            });
+          } else {
+            newNotifications.push({
+              id: `drop-fail-${Date.now()}`,
+              type: "views" as const,
+              message: `❌ Product Drop "${activeDrop.name}" failed — no promotion before timer ended.`,
+              read: false,
+              timestamp: Date.now(),
+            });
+          }
+          activeDrop = { ...activeDrop, claimed: true };
+        }
+      }
+
+      // Apply viral drop boost if just claimed and promoted
+      let dropCustomerBoost = 0;
+      let dropRevenueBoost = 0;
+      if (
+        activeDrop?.claimed &&
+        activeDrop.promoted &&
+        state.creatorBusiness.activeProductDrop &&
+        !state.creatorBusiness.activeProductDrop.claimed
+      ) {
+        dropCustomerBoost = Math.floor(
+          state.creatorBusiness.customers * 0.3 + 1000,
+        );
+        dropRevenueBoost = Math.floor(
+          state.creatorBusiness.revenue * 0.2 + 5000,
+        );
+      }
+
+      return {
+        ...state,
+        notifications: newNotifications,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          revenue:
+            state.creatorBusiness.revenue + revTickFinal + dropRevenueBoost,
+          reach: state.creatorBusiness.reach + reachTick,
+          customers: newCustomers + dropCustomerBoost,
+          customerMilestones: newCustMilestones,
+          products: updatedProductsWithReviews,
+          competitors: updatedCompetitors,
+          pendingBusinessSponsorship: pendingDeal,
+          lastSponsorshipOfferedAt: lastOfferedAt,
+          activeProductDrop: activeDrop,
+        },
+      };
+    }
+    case "PROMOTE_BUSINESS": {
+      if (!state.creatorBusiness) return state;
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          lastPromoted: Date.now(),
+          revenueBoostUntil: Date.now() + 86400000,
+        },
+      };
+    }
+    case "RUN_BUSINESS_ADS": {
+      if (!state.creatorBusiness || state.coins < action.payload.cost)
+        return state;
+      return {
+        ...state,
+        coins: state.coins - action.payload.cost,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          reach: state.creatorBusiness.reach + 50000,
+          adBoostUntil: Date.now() + 3600000,
+        },
+      };
+    }
+    case "REACH_BUSINESS_MILESTONE": {
+      if (!state.creatorBusiness) return state;
+      if (state.creatorBusiness.milestones.includes(action.payload.amount))
+        return state;
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          milestones: [
+            ...state.creatorBusiness.milestones,
+            action.payload.amount,
+          ],
+        },
+      };
+    }
+    case "ADD_PRODUCT": {
+      if (!state.creatorBusiness) return state;
+      const newProduct: ProductItem = {
+        id: Date.now().toString(),
+        name: action.payload.name,
+        description: action.payload.description,
+        category: action.payload.category,
+        status: "draft",
+        fame: 0,
+        shoutouts: 0,
+        reviewText: "",
+        createdAt: Date.now(),
+        launchedAt: null,
+        customerReviews: [],
+      };
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          products: [...(state.creatorBusiness.products ?? []), newProduct],
+        },
+      };
+    }
+    case "REVIEW_PRODUCT": {
+      if (!state.creatorBusiness) return state;
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          products: (state.creatorBusiness.products ?? []).map((p) =>
+            p.id === action.payload.productId
+              ? {
+                  ...p,
+                  status: "approved" as const,
+                  reviewText: action.payload.reviewText,
+                }
+              : p,
+          ),
+        },
+      };
+    }
+    case "LAUNCH_PRODUCT": {
+      if (!state.creatorBusiness) return state;
+      const updatedProducts = (state.creatorBusiness.products ?? []).map((p) =>
+        p.id === action.payload.productId
+          ? { ...p, status: "launched" as const, launchedAt: Date.now() }
+          : p,
+      );
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          products: updatedProducts,
+          popularity: (state.creatorBusiness.popularity ?? 0) + 500,
+          brandValue: (state.creatorBusiness.brandValue ?? 0) + 1000,
+        },
+      };
+    }
+    case "SHOUTOUT_PRODUCT": {
+      if (!state.creatorBusiness) return state;
+      const fameGain = 200 + Math.floor(Math.random() * 300);
+      const updatedProds = (state.creatorBusiness.products ?? []).map((p) =>
+        p.id === action.payload.productId
+          ? { ...p, fame: p.fame + fameGain, shoutouts: p.shoutouts + 1 }
+          : p,
+      );
+      const totalFame = updatedProds.reduce((s, p) => s + p.fame, 0);
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          products: updatedProds,
+          fame: totalFame,
+          revenue: state.creatorBusiness.revenue + fameGain * 2,
+          customers: state.creatorBusiness.customers + Math.floor(fameGain / 5),
+          popularity: (state.creatorBusiness.popularity ?? 0) + 50,
+        },
+      };
+    }
+    case "HIRE_STAFF": {
+      if (!state.creatorBusiness || state.coins < 2000) return state;
+      return {
+        ...state,
+        coins: state.coins - 2000,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          staffCount: (state.creatorBusiness.staffCount ?? 1) + 1,
+          revenue: state.creatorBusiness.revenue + 500,
+        },
+      };
+    }
+    case "OPEN_BRANCH": {
+      if (!state.creatorBusiness || state.coins < 5000) return state;
+      return {
+        ...state,
+        coins: state.coins - 5000,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          branchCount: (state.creatorBusiness.branchCount ?? 1) + 1,
+          reach: state.creatorBusiness.reach + 100000,
+          customers: state.creatorBusiness.customers + 1000,
+        },
+      };
+    }
+    case "ACCEPT_BUSINESS_SPONSORSHIP": {
+      if (!state.creatorBusiness?.pendingBusinessSponsorship) return state;
+      const deal = state.creatorBusiness.pendingBusinessSponsorship;
+      return {
+        ...state,
+        coins: state.coins + deal.dealAmount,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          pendingBusinessSponsorship: null,
+          revenueBoostUntil: Date.now() + deal.revenueBoostDuration,
+          businessSponsorshipHistory: [
+            ...(state.creatorBusiness.businessSponsorshipHistory ?? []),
+            deal,
+          ],
+        },
+      };
+    }
+    case "DECLINE_BUSINESS_SPONSORSHIP": {
+      if (!state.creatorBusiness) return state;
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          pendingBusinessSponsorship: null,
+        },
+      };
+    }
+    case "CREATE_PRODUCT_DROP": {
+      if (
+        !state.creatorBusiness ||
+        state.creatorBusiness.activeProductDrop?.claimed === false
+      )
+        return state;
+      const drop: ProductDrop = {
+        name: action.payload.name,
+        startedAt: Date.now(),
+        endsAt: Date.now() + 90000,
+        promoted: false,
+        claimed: false,
+      };
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          activeProductDrop: drop,
+        },
+      };
+    }
+    case "PROMOTE_DROP": {
+      if (!state.creatorBusiness?.activeProductDrop) return state;
+      const drop = state.creatorBusiness.activeProductDrop;
+      if (drop.claimed || Date.now() >= drop.endsAt) return state;
+      const fameGain = 100 + Math.floor(Math.random() * 200);
+      return {
+        ...state,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          activeProductDrop: { ...drop, promoted: true },
+          fame: (state.creatorBusiness.fame ?? 0) + fameGain,
+          customers:
+            state.creatorBusiness.customers + Math.floor(fameGain * 0.5),
+        },
+      };
+    }
     default:
       return state;
   }
@@ -1220,5 +2105,68 @@ export function useGame() {
       dispatch({ type: "SET_NOTIFICATION_PREFERENCE", payload: { pref } }),
     setCreatorMode: (mode: boolean) =>
       dispatch({ type: "SET_CREATOR_MODE", payload: { mode } }),
+    // Feature 33-37
+    xp: state.xp,
+    level: state.level,
+    coins: state.coins,
+    achievements: state.achievements,
+    loginStreak: state.loginStreak,
+    lastLoginDate: state.lastLoginDate,
+    soundEffectsEnabled: state.soundEffectsEnabled,
+    gainXp: (amount: number) =>
+      dispatch({ type: "GAIN_XP", payload: { amount } }),
+    gainCoins: (amount: number) =>
+      dispatch({ type: "GAIN_COINS", payload: { amount } }),
+    unlockAchievement: (achievementId: string) =>
+      dispatch({ type: "UNLOCK_ACHIEVEMENT", payload: { achievementId } }),
+    claimDailyBonus: (date: string, xp: number, coins: number) =>
+      dispatch({ type: "CLAIM_DAILY_BONUS", payload: { date, xp, coins } }),
+    setSoundEffects: (enabled: boolean) =>
+      dispatch({ type: "SET_SOUND_EFFECTS", payload: { enabled } }),
+    // Version 18 - Viral Events & FanFest & Business
+    viralEvents: state.viralEvents,
+    fanfestScore: state.fanfestScore,
+    fanfestJoinedEvents: state.fanfestJoinedEvents,
+    fanLoyaltyScore: state.fanLoyaltyScore,
+    creatorBusiness: state.creatorBusiness,
+    applyViralEvent: (
+      eventType: string,
+      data: Record<string, unknown> | null,
+    ) => dispatch({ type: "APPLY_VIRAL_EVENT", payload: { eventType, data } }),
+    joinFanFestEvent: (eventId: string, xpReward: number, subBoost: number) =>
+      dispatch({
+        type: "JOIN_FANFEST_EVENT",
+        payload: { eventId, xpReward, subBoost },
+      }),
+    spendCoinsForGift: (cost: number, loyaltyBoost: number) =>
+      dispatch({ type: "SPEND_COINS_GIFT", payload: { cost, loyaltyBoost } }),
+    launchBusiness: (name: string, businessType: string) =>
+      dispatch({ type: "LAUNCH_BUSINESS", payload: { name, businessType } }),
+    tickBusiness: () => dispatch({ type: "TICK_BUSINESS" }),
+    promoteBusiness: () => dispatch({ type: "PROMOTE_BUSINESS" }),
+    runBusinessAds: (cost: number) =>
+      dispatch({ type: "RUN_BUSINESS_ADS", payload: { cost } }),
+    reachBusinessMilestone: (amount: number) =>
+      dispatch({ type: "REACH_BUSINESS_MILESTONE", payload: { amount } }),
+    addProduct: (name: string, description: string, category: string) =>
+      dispatch({
+        type: "ADD_PRODUCT",
+        payload: { name, description, category },
+      }),
+    reviewProduct: (productId: string, reviewText: string) =>
+      dispatch({ type: "REVIEW_PRODUCT", payload: { productId, reviewText } }),
+    launchProduct: (productId: string) =>
+      dispatch({ type: "LAUNCH_PRODUCT", payload: { productId } }),
+    shoutoutProduct: (productId: string, channel: string) =>
+      dispatch({ type: "SHOUTOUT_PRODUCT", payload: { productId, channel } }),
+    hireStaff: () => dispatch({ type: "HIRE_STAFF" }),
+    openBranch: () => dispatch({ type: "OPEN_BRANCH" }),
+    acceptBusinessSponsorship: () =>
+      dispatch({ type: "ACCEPT_BUSINESS_SPONSORSHIP" }),
+    declineBusinessSponsorship: () =>
+      dispatch({ type: "DECLINE_BUSINESS_SPONSORSHIP" }),
+    createProductDrop: (name: string) =>
+      dispatch({ type: "CREATE_PRODUCT_DROP", payload: { name } }),
+    promoteDrop: () => dispatch({ type: "PROMOTE_DROP" }),
   };
 }
