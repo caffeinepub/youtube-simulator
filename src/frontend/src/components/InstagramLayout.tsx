@@ -2,20 +2,15 @@ import { useEffect } from "react";
 import InstagramDMsPage from "../pages/instagram/InstagramDMsPage";
 import InstagramExplorePage from "../pages/instagram/InstagramExplorePage";
 import InstagramFeedPage from "../pages/instagram/InstagramFeedPage";
-import InstagramInsightsPage from "../pages/instagram/InstagramInsightsPage";
-import InstagramLivePage from "../pages/instagram/InstagramLivePage";
 import InstagramProfilePage from "../pages/instagram/InstagramProfilePage";
-import InstagramReelsPage from "../pages/instagram/InstagramReelsPage";
 import { useInstagram } from "../store/instagramStore";
 
 const IG_GRADIENT =
   "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)";
 
-const NAV_ITEMS: Array<{
-  tab: ReturnType<typeof useInstagram>["activeTab"];
-  label: string;
-  icon: React.ReactNode;
-}> = [
+type TabId = "feed" | "explore" | "dms" | "profile";
+
+const NAV_ITEMS: Array<{ tab: TabId; label: string; icon: React.ReactNode }> = [
   {
     tab: "feed",
     label: "Home",
@@ -30,23 +25,6 @@ const NAV_ITEMS: Array<{
       >
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
         <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
-  },
-  {
-    tab: "reels",
-    label: "Reels",
-    icon: (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <polygon points="23 7 16 12 23 17 23 7" />
-        <rect x="1" y="5" width="15" height="14" rx="2" />
       </svg>
     ),
   },
@@ -84,22 +62,6 @@ const NAV_ITEMS: Array<{
     ),
   },
   {
-    tab: "live",
-    label: "Live",
-    icon: (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
     tab: "profile",
     label: "Profile",
     icon: (
@@ -116,24 +78,6 @@ const NAV_ITEMS: Array<{
       </svg>
     ),
   },
-  {
-    tab: "insights",
-    label: "Insights",
-    icon: (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
-  },
 ];
 
 export default function InstagramLayout({
@@ -141,7 +85,6 @@ export default function InstagramLayout({
 }: { onSwitchToYouTube: () => void }) {
   const ig = useInstagram();
 
-  // IG passive algorithm tick
   // biome-ignore lint/correctness/useExhaustiveDependencies: game loop
   useEffect(() => {
     const interval = setInterval(() => {
@@ -156,31 +99,24 @@ export default function InstagramLayout({
     switch (ig.activeTab) {
       case "feed":
         return <InstagramFeedPage />;
-      case "reels":
-        return <InstagramReelsPage />;
       case "explore":
         return <InstagramExplorePage />;
       case "dms":
         return <InstagramDMsPage />;
-      case "live":
-        return <InstagramLivePage />;
       case "profile":
         return <InstagramProfilePage />;
-      case "insights":
-        return <InstagramInsightsPage />;
       default:
         return <InstagramFeedPage />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-[#fafafa] flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2">
-          {/* Instagram Logo (gradient text) */}
           <span
-            className="text-xl font-bold"
+            className="text-xl font-bold tracking-tight"
             style={{
               background: IG_GRADIENT,
               WebkitBackgroundClip: "text",
@@ -192,11 +128,11 @@ export default function InstagramLayout({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {/* Switch back to YouTube */}
           <button
             type="button"
             onClick={onSwitchToYouTube}
             className="flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-200 hover:bg-red-100 transition-colors"
+            data-ocid="ig.youtube_switch.button"
           >
             <svg
               aria-hidden="true"
@@ -207,11 +143,11 @@ export default function InstagramLayout({
             </svg>
             YouTube
           </button>
-          {/* DM Badge */}
           <button
             type="button"
             onClick={() => ig.setIGTab("dms")}
             className="relative"
+            data-ocid="ig.dms.button"
           >
             <svg
               aria-hidden="true"
@@ -238,58 +174,44 @@ export default function InstagramLayout({
       {/* Main Content */}
       <main className="flex-1 overflow-auto">{renderPage()}</main>
 
-      {/* Bottom Navigation (hide on reels/live) */}
-      {ig.activeTab !== "reels" && ig.activeTab !== "live" && (
-        <nav className="bg-white border-t border-gray-200 flex items-center justify-around px-2 py-2 sticky bottom-0 z-20">
-          {NAV_ITEMS.map((item) => (
-            <button
-              type="button"
-              key={item.tab}
-              onClick={() => ig.setIGTab(item.tab)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors relative ${
-                ig.activeTab === item.tab ? "" : "text-gray-400"
-              }`}
+      {/* Bottom Navigation */}
+      <nav className="bg-white border-t border-gray-200 flex items-center justify-around px-2 py-2 sticky bottom-0 z-20">
+        {NAV_ITEMS.map((item) => (
+          <button
+            type="button"
+            key={item.tab}
+            onClick={() => ig.setIGTab(item.tab)}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors relative ${
+              ig.activeTab === item.tab ? "" : "text-gray-400"
+            }`}
+            data-ocid={`ig.${item.tab}.tab`}
+          >
+            <div
+              style={
+                ig.activeTab === item.tab
+                  ? { filter: "drop-shadow(0 0 2px #dc2743)", color: "#dc2743" }
+                  : {}
+              }
             >
-              <div
-                style={
-                  ig.activeTab === item.tab
-                    ? {
-                        filter: "drop-shadow(0 0 2px #dc2743)",
-                        color: "#dc2743",
-                      }
-                    : {}
-                }
-              >
-                {item.icon}
-              </div>
-              {item.tab === "dms" && unreadDMs > 0 && (
-                <span
-                  className="absolute top-0 right-1 w-3 h-3 text-white text-[8px] font-bold rounded-full flex items-center justify-center"
-                  style={{ background: IG_GRADIENT }}
-                >
-                  {unreadDMs}
-                </span>
-              )}
+              {item.icon}
+            </div>
+            {item.tab === "dms" && unreadDMs > 0 && (
               <span
-                className="text-[10px]"
-                style={ig.activeTab === item.tab ? { color: "#dc2743" } : {}}
+                className="absolute top-0 right-2 w-3 h-3 text-white text-[8px] font-bold rounded-full flex items-center justify-center"
+                style={{ background: IG_GRADIENT }}
               >
-                {item.label}
+                {unreadDMs}
               </span>
-            </button>
-          ))}
-        </nav>
-      )}
-      {/* Back button for Reels/Live */}
-      {(ig.activeTab === "reels" || ig.activeTab === "live") && (
-        <button
-          type="button"
-          onClick={() => ig.setIGTab("feed")}
-          className="fixed bottom-4 left-4 z-20 bg-black/40 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm"
-        >
-          ← Back
-        </button>
-      )}
+            )}
+            <span
+              className="text-[10px]"
+              style={ig.activeTab === item.tab ? { color: "#dc2743" } : {}}
+            >
+              {item.label}
+            </span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

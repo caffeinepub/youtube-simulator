@@ -54,6 +54,10 @@ export function BusinessTab({
   onDeclineBusinessSponsorship,
   onCreateProductDrop,
   onPromoteDrop,
+  onShutdownBusiness,
+  onReopenBusiness,
+  onDeleteBusiness,
+  onPurchaseFacility,
 }: {
   business: CreatorBusiness | null;
   coins: number;
@@ -70,6 +74,10 @@ export function BusinessTab({
   onDeclineBusinessSponsorship: () => void;
   onCreateProductDrop: (name: string) => void;
   onPromoteDrop: () => void;
+  onShutdownBusiness: () => void;
+  onReopenBusiness: () => void;
+  onDeleteBusiness: () => void;
+  onPurchaseFacility: (facilityId: string, cost: number) => void;
 }) {
   const [bizName, setBizName] = useState("");
   const [bizType, setBizType] = useState("Merch Store");
@@ -91,6 +99,7 @@ export function BusinessTab({
     { productName: string; fameGain: string; time: string }[]
   >([]);
   const [dropName, setDropName] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [dropTimer, setDropTimer] = useState<number>(0);
   const prevCustMilestonesRef = useRef<number[]>([]);
   const prevSponsorshipRef = useRef<BusinessDeal | null>(null);
@@ -366,6 +375,208 @@ export function BusinessTab({
           </span>
         </div>
       </div>
+
+      {/* Shutdown Banner */}
+      {business.isShutdown && (
+        <div
+          style={{
+            background: "#fff3e0",
+            border: "2px solid #ff9800",
+            borderRadius: "10px",
+            padding: "14px 20px",
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "10px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "20px" }}>⏸</span>
+            <div>
+              <div
+                style={{ fontWeight: 700, color: "#e65100", fontSize: "14px" }}
+              >
+                Business is paused
+              </div>
+              <div style={{ fontSize: "12px", color: "#bf360c" }}>
+                Revenue and fame ticks are stopped. Reopen to resume.
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onReopenBusiness}
+            data-ocid="business.reopen.button"
+            style={{
+              background: "#2e7d32",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "8px 18px",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            ▶ Reopen Business
+          </button>
+        </div>
+      )}
+
+      {/* Business Action Buttons (Shutdown / Delete) */}
+      {!business.isShutdown && (
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginBottom: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onShutdownBusiness}
+            data-ocid="business.shutdown.button"
+            style={{
+              background: "#fff8e1",
+              color: "#e65100",
+              border: "2px solid #ff9800",
+              borderRadius: "8px",
+              padding: "8px 16px",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            ⏸ Pause Business
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            data-ocid="business.delete.button"
+            style={{
+              background: "#ffebee",
+              color: "#c62828",
+              border: "2px solid #ef5350",
+              borderRadius: "8px",
+              padding: "8px 16px",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            🗑 Delete Business
+          </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          data-ocid="business.delete.dialog"
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "14px",
+              padding: "28px",
+              maxWidth: "400px",
+              width: "100%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "40px",
+                textAlign: "center",
+                marginBottom: "12px",
+              }}
+            >
+              🗑
+            </div>
+            <h3
+              style={{
+                textAlign: "center",
+                margin: "0 0 10px",
+                color: "#c62828",
+              }}
+            >
+              Delete Business?
+            </h3>
+            <p
+              style={{
+                textAlign: "center",
+                fontSize: "14px",
+                color: "#555",
+                margin: "0 0 24px",
+                lineHeight: 1.5,
+              }}
+            >
+              This will permanently delete <strong>{business.name}</strong> and
+              all its products, revenue, and progress.{" "}
+              <strong>This cannot be undone.</strong>
+            </p>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                data-ocid="business.delete.cancel_button"
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#f5f5f5",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "8px",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  onDeleteBusiness();
+                }}
+                data-ocid="business.delete.confirm_button"
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#c62828",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                🗑 Delete Forever
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Business Sponsorship Banner */}
       {business.pendingBusinessSponsorship && (
@@ -1460,6 +1671,161 @@ export function BusinessTab({
                 </button>
               </div>
             ))}
+          </div>
+          {/* 6 New Purchasable Facilities */}
+          <div style={{ marginTop: "20px" }}>
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#555",
+                marginBottom: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              🏗 Facility Upgrades
+            </div>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "14px" }}
+            >
+              {[
+                {
+                  id: "marketing_team",
+                  title: "Marketing Team",
+                  emoji: "📣",
+                  cost: 3000,
+                  desc: "Passively boosts product fame by +5 per tick",
+                  color: "#1565c0",
+                },
+                {
+                  id: "rd_lab",
+                  title: "R&D Lab",
+                  emoji: "🔬",
+                  cost: 4000,
+                  desc: "Unlocks Premium product tier badge when creating products",
+                  color: "#6a1b9a",
+                },
+                {
+                  id: "warehouse",
+                  title: "Warehouse",
+                  emoji: "🏭",
+                  cost: 2500,
+                  desc: "Increases max product drop stock by +50%",
+                  color: "#e65100",
+                },
+                {
+                  id: "customer_service",
+                  title: "Customer Service",
+                  emoji: "🎧",
+                  cost: 2000,
+                  desc: "Reduces negative reviews and adds +0.3 to avg star rating",
+                  color: "#00695c",
+                },
+                {
+                  id: "social_media_manager",
+                  title: "Social Media Manager",
+                  emoji: "📱",
+                  cost: 3500,
+                  desc: "Auto-shouts out a random product every 3 minutes",
+                  color: "#c62828",
+                },
+                {
+                  id: "flagship_store",
+                  title: "Flagship Store",
+                  emoji: "🏬",
+                  cost: 8000,
+                  desc: "Adds +5,000 customers and +20% to all revenue ticks",
+                  color: "#1a237e",
+                },
+              ].map((f) => {
+                const owned = business.facilities?.[f.id] ?? false;
+                const canAfford = coins >= f.cost;
+                return (
+                  <div
+                    key={f.id}
+                    style={{
+                      border: `2px solid ${owned ? f.color : `${f.color}44`}`,
+                      borderRadius: "10px",
+                      padding: "16px 18px",
+                      background: owned ? `${f.color}12` : `${f.color}05`,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "14px",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span style={{ fontSize: "28px" }}>{f.emoji}</span>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 700,
+                            color: f.color,
+                          }}
+                        >
+                          {f.title}{" "}
+                          {owned && (
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                background: f.color,
+                                color: "#fff",
+                                padding: "2px 8px",
+                                borderRadius: "10px",
+                                marginLeft: "4px",
+                              }}
+                            >
+                              ✓ OWNED
+                            </span>
+                          )}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#666",
+                            marginTop: "2px",
+                          }}
+                        >
+                          {f.desc}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => !owned && onPurchaseFacility(f.id, f.cost)}
+                      disabled={owned || !canAfford}
+                      data-ocid={`business.facility_${f.id}.button`}
+                      style={{
+                        background: owned
+                          ? "#e0e0e0"
+                          : canAfford
+                            ? f.color
+                            : "#bdbdbd",
+                        color: owned || !canAfford ? "#888" : "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "9px 18px",
+                        fontWeight: 700,
+                        fontSize: "12px",
+                        cursor: owned || !canAfford ? "default" : "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {owned ? "Owned" : `${f.cost.toLocaleString()} coins`}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

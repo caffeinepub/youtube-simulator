@@ -1,292 +1,455 @@
-import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useGame } from "../../store/gameStore";
+import AnimatedNumber from "../../components/AnimatedNumber";
 import { useInstagram } from "../../store/instagramStore";
 
 const IG_GRADIENT =
   "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)";
 
-const GALLERY_IMAGES = [
-  "https://picsum.photos/seed/profile1/400/400",
-  "https://picsum.photos/seed/profile2/400/400",
-  "https://picsum.photos/seed/profile3/400/400",
-  "https://picsum.photos/seed/profile4/400/400",
-  "https://picsum.photos/seed/profile5/400/400",
-  "https://picsum.photos/seed/profile6/400/400",
+const GRADIENTS = [
+  "linear-gradient(135deg, #a855f7, #3b82f6)",
+  "linear-gradient(135deg, #f97316, #ec4899)",
+  "linear-gradient(135deg, #22c55e, #14b8a6)",
+  "linear-gradient(135deg, #eab308, #f97316)",
+  "linear-gradient(135deg, #06b6d4, #6366f1)",
+  "linear-gradient(135deg, #f43f5e, #8b5cf6)",
+  "linear-gradient(135deg, #10b981, #3b82f6)",
+  "linear-gradient(135deg, #ef4444, #f97316)",
+  "linear-gradient(135deg, #8b5cf6, #ec4899)",
 ];
+
+const YT_GRADIENT = "linear-gradient(135deg, #dc2626, #991b1b)";
+
+const MILESTONES = [
+  {
+    id: "1k",
+    threshold: 1000,
+    label: "1K Followers",
+    badge: "🥉",
+    color: "#cd7f32",
+  },
+  {
+    id: "10k",
+    threshold: 10000,
+    label: "10K Followers",
+    badge: "🥈",
+    color: "#9e9e9e",
+  },
+  {
+    id: "100k",
+    threshold: 100000,
+    label: "100K Followers",
+    badge: "🥇",
+    color: "#ffd700",
+  },
+];
+
+function getAvatarColor(name: string) {
+  const colors = [
+    "#a855f7",
+    "#f97316",
+    "#22c55e",
+    "#3b82f6",
+    "#ec4899",
+    "#14b8a6",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++)
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
 
 export default function InstagramProfilePage() {
   const ig = useInstagram();
-  const { channel } = useGame();
-  const [showPostModal, setShowPostModal] = useState(false);
-  const [showReelModal, setShowReelModal] = useState(false);
-  const [selectedImg, setSelectedImg] = useState("");
-  const [caption, setCaption] = useState("");
-  const [crossPromoted, setCrossPromoted] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioText, setBioText] = useState(ig.bio);
+  const [selectedPost, setSelectedPost] = useState<string | null>(null);
+  const prevMilestones = useRef<string[]>(ig.milestonesReached);
 
   const ownPosts = ig.posts.filter((p) => p.isOwn);
-  const username =
-    ig.username ||
-    channel?.name?.toLowerCase().replace(/\s+/g, "_") ||
-    "creator";
+  const isVerified = ig.followers >= 100000;
 
-  const handleCrossPromote = () => {
-    if (crossPromoted) return;
-    const ytSubs = channel?.subscribers ?? 0;
-    ig.crossPromote(ytSubs);
-    setCrossPromoted(true);
-    const gained = Math.floor(ytSubs * 0.1);
-    toast.success(
-      `Your YouTube audience found you on Instagram! +${gained.toLocaleString()} followers`,
-    );
-  };
-
-  const handlePost = (isReel: boolean) => {
-    if (!selectedImg) return;
-    if (isReel) {
-      ig.addIGReel(selectedImg, caption || "New reel! 🎥");
-    } else {
-      ig.addIGPost(selectedImg, caption || "New post! 📸");
+  // Check milestones
+  // biome-ignore lint/correctness/useExhaustiveDependencies: milestone check
+  useEffect(() => {
+    for (const milestone of MILESTONES) {
+      if (
+        ig.followers >= milestone.threshold &&
+        !ig.milestonesReached.includes(milestone.id)
+      ) {
+        ig.markMilestone(milestone.id);
+        toast.success(`${milestone.badge} You reached ${milestone.label}!`, {
+          duration: 4000,
+        });
+      }
     }
-    setShowPostModal(false);
-    setShowReelModal(false);
-    setSelectedImg("");
-    setCaption("");
-    toast.success(isReel ? "Reel shared!" : "Post shared!");
+  }, [ig.followers]);
+
+  // Toast for new milestone triggers
+  useEffect(() => {
+    const newOnes = ig.milestonesReached.filter(
+      (m) => !prevMilestones.current.includes(m),
+    );
+    for (const m of newOnes) {
+      const milestone = MILESTONES.find((ms) => ms.id === m);
+      if (milestone)
+        toast.success(`${milestone.badge} ${milestone.label} unlocked!`, {
+          duration: 4000,
+        });
+    }
+    prevMilestones.current = ig.milestonesReached;
+  }, [ig.milestonesReached]);
+
+  const saveBio = () => {
+    ig.setIGBio(bioText);
+    setEditingBio(false);
   };
+
+  const selectedPostData = ownPosts.find((p) => p.id === selectedPost);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="pb-8">
       {/* Profile Header */}
-      <div className="px-4 pt-6 pb-4">
-        <div className="flex items-start gap-6 mb-4">
+      <div className="bg-white px-4 pt-6 pb-4">
+        <div className="flex items-start gap-4 mb-4">
+          {/* Avatar */}
           <div
-            className="w-20 h-20 rounded-full p-0.5 flex-shrink-0"
-            style={{ background: IG_GRADIENT }}
+            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-md"
+            style={{
+              background: ig.username
+                ? getAvatarColor(ig.username)
+                : IG_GRADIENT,
+            }}
           >
-            <div className="w-full h-full rounded-full bg-white p-0.5 flex items-center justify-center">
-              <div
-                className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-xl"
-                style={{ background: IG_GRADIENT }}
-              >
-                {username.slice(0, 2).toUpperCase()}
-              </div>
-            </div>
+            {(ig.username || "ME").slice(0, 2).toUpperCase()}
           </div>
+
+          {/* Stats */}
           <div className="flex-1">
-            <div className="flex gap-6 justify-around text-center mb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-base font-bold text-gray-900">
+                {ig.username || "your_username"}
+              </h2>
+              {isVerified && (
+                <span
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                  style={{ background: IG_GRADIENT }}
+                  title="Verified"
+                >
+                  ✓
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-5 text-center">
               <div>
-                <div className="font-bold text-lg">{ownPosts.length}</div>
-                <div className="text-xs text-gray-500">Posts</div>
+                <p className="text-base font-bold text-gray-900">
+                  {ownPosts.length}
+                </p>
+                <p className="text-xs text-gray-500">posts</p>
               </div>
               <div>
-                <div className="font-bold text-lg">
-                  {ig.followers.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500">Followers</div>
+                <p className="text-base font-bold text-gray-900">
+                  <AnimatedNumber value={ig.followers} />
+                </p>
+                <p className="text-xs text-gray-500">followers</p>
               </div>
               <div>
-                <div className="font-bold text-lg">
-                  {ig.following.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500">Following</div>
+                <p className="text-base font-bold text-gray-900">
+                  {ig.following}
+                </p>
+                <p className="text-xs text-gray-500">following</p>
               </div>
             </div>
-            <div className="flex gap-2">
+          </div>
+        </div>
+
+        {/* Bio */}
+        {editingBio ? (
+          <div className="mb-3">
+            <textarea
+              value={bioText}
+              onChange={(e) => setBioText(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-pink-300"
+              rows={2}
+              data-ocid="profile.bio.textarea"
+            />
+            <div className="flex gap-2 mt-1">
               <button
                 type="button"
-                className="flex-1 text-sm font-semibold border border-gray-200 rounded-lg py-1.5"
+                onClick={saveBio}
+                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white"
+                style={{ background: IG_GRADIENT }}
+                data-ocid="profile.bio.save_button"
               >
-                Edit Profile
+                Save
               </button>
-              <button
-                type="button"
-                onClick={() => ig.setIGTab("insights")}
-                className="flex-1 text-sm font-semibold border border-gray-200 rounded-lg py-1.5"
-              >
-                Insights
-              </button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <span className="font-semibold text-sm">{username}</span>
-          <p className="text-sm text-gray-700 mt-0.5">{ig.bio}</p>
-        </div>
-
-        {/* Cross-promote button */}
-        {!crossPromoted && channel && channel.subscribers > 0 && (
-          <button
-            type="button"
-            onClick={handleCrossPromote}
-            className="mt-3 w-full py-2 rounded-xl text-white text-sm font-semibold"
-            style={{ background: IG_GRADIENT }}
-          >
-            📺 Share YouTube Channel to Instagram Bio
-          </button>
-        )}
-      </div>
-
-      {/* Story Highlights */}
-      <div className="px-4 pb-3 border-b border-gray-100">
-        <div className="flex gap-4 overflow-x-auto">
-          {["Best Of", "Travel", "Gaming", "BTS"].map((name) => (
-            <div
-              key={name}
-              className="flex flex-col items-center gap-1 flex-shrink-0"
-            >
-              <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
-                <span className="text-xl">⭐</span>
-              </div>
-              <span className="text-xs text-gray-600">{name}</span>
-            </div>
-          ))}
-          <div className="flex flex-col items-center gap-1 flex-shrink-0">
-            <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="w-6 h-6 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </div>
-            <span className="text-xs text-gray-600">New</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Posts Grid */}
-      <div className="grid grid-cols-3 gap-0.5">
-        {ownPosts.length === 0 ? (
-          <div className="col-span-3 text-center py-16 text-gray-400">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="w-12 h-12 mx-auto mb-3 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1}
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            <p className="text-sm">No posts yet</p>
-          </div>
-        ) : (
-          ownPosts.map((post) => (
-            <div key={post.id} className="aspect-square overflow-hidden">
-              <img
-                src={post.imageUrl}
-                alt="post"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* FAB Buttons */}
-      <div className="fixed bottom-20 right-4 flex flex-col gap-2 z-10">
-        <button
-          type="button"
-          onClick={() => setShowReelModal(true)}
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg"
-          style={{ background: IG_GRADIENT }}
-          title="New Reel"
-        >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <polygon points="23 7 16 12 23 17 23 7" />
-            <rect x="1" y="5" width="15" height="14" rx="2" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowPostModal(true)}
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg"
-          style={{ background: IG_GRADIENT }}
-          title="New Post"
-        >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Post / Reel Modal */}
-      {(showPostModal || showReelModal) && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg">
-                {showReelModal ? "New Reel" : "New Post"}
-              </h3>
               <button
                 type="button"
                 onClick={() => {
-                  setShowPostModal(false);
-                  setShowReelModal(false);
+                  setBioText(ig.bio);
+                  setEditingBio(false);
                 }}
-                className="text-gray-400 text-xl"
+                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-500 border border-gray-200"
+                data-ocid="profile.bio.cancel_button"
               >
-                ×
+                Cancel
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              {GALLERY_IMAGES.map((img) => (
-                <button
-                  type="button"
-                  key={img}
-                  onClick={() => setSelectedImg(img)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImg === img ? "border-pink-500" : "border-transparent"}`}
-                >
-                  <img
-                    src={img}
-                    alt="gallery"
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="text-sm text-gray-700 mb-3 text-left w-full hover:bg-gray-50 rounded-lg px-1 py-0.5 transition-colors"
+            onClick={() => setEditingBio(true)}
+            data-ocid="profile.bio.edit_button"
+          >
+            {ig.bio || "Tap to add a bio..."}
+          </button>
+        )}
+
+        {ig.ytLinkedInBio && (
+          <div className="flex items-center gap-1.5 text-xs text-red-500 font-semibold mb-2">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="w-3.5 h-3.5 fill-red-500"
+            >
+              <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z" />
+            </svg>
+            youtube.com/{ig.username} · linked in bio
+          </div>
+        )}
+      </div>
+
+      {/* Cross Promo Card */}
+      <div className="mx-4 my-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-900 mb-3">🔗 Cross Promo</h3>
+        <div className="space-y-3">
+          {/* Link YouTube in Bio */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">
+                🔗 Link YouTube in Bio
+              </p>
+              <p className="text-xs text-gray-500">
+                Passively converts YT subs to IG followers
+              </p>
             </div>
-            <textarea
-              className="w-full border border-gray-200 rounded-lg p-3 text-sm resize-none mb-4"
-              rows={3}
-              placeholder="Write a caption..."
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-            />
             <button
               type="button"
-              onClick={() => handlePost(showReelModal)}
-              disabled={!selectedImg}
-              className="w-full py-3 rounded-xl font-semibold text-white disabled:opacity-40"
-              style={{ background: IG_GRADIENT }}
+              onClick={() => ig.toggleYTLink()}
+              className={`w-12 h-6 rounded-full transition-all relative ${
+                ig.ytLinkedInBio ? "" : "bg-gray-300"
+              }`}
+              style={ig.ytLinkedInBio ? { background: IG_GRADIENT } : {}}
+              data-ocid="profile.yt_link.toggle"
             >
-              Share
+              <span
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  ig.ytLinkedInBio ? "translate-x-6" : "translate-x-0.5"
+                }`}
+              />
             </button>
+          </div>
+
+          {/* Share YouTube Video */}
+          <button
+            type="button"
+            onClick={() => {
+              ig.shareYTToIG();
+              toast.success("📺 YouTube video shared to your IG feed!");
+            }}
+            className="w-full flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition-colors text-left"
+            data-ocid="profile.share_yt.button"
+          >
+            <span className="text-xl">📺</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">
+                Share YouTube Video
+              </p>
+              <p className="text-xs text-red-500">
+                Post your latest YT video to your IG feed
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="w-4 h-4 text-red-400 ml-auto shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+
+          {/* Collab Post */}
+          <button
+            type="button"
+            onClick={() => {
+              ig.collabPost();
+              toast.success("🤝 Collab post shared! Followers boosted!");
+            }}
+            className="w-full flex items-center gap-3 p-3 bg-purple-50 border border-purple-100 rounded-xl hover:bg-purple-100 transition-colors text-left"
+            data-ocid="profile.collab.button"
+          >
+            <span className="text-xl">🤝</span>
+            <div>
+              <p className="text-sm font-semibold text-purple-700">
+                Collab Post
+              </p>
+              <p className="text-xs text-purple-500">
+                Partner with an AI creator for a boost
+              </p>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="w-4 h-4 text-purple-400 ml-auto shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Milestones */}
+      {ig.milestonesReached.length > 0 && (
+        <div className="mx-4 mb-4">
+          <h3 className="text-sm font-bold text-gray-900 mb-2">
+            🏅 Milestones
+          </h3>
+          <div className="flex gap-2 flex-wrap">
+            {MILESTONES.filter((m) => ig.milestonesReached.includes(m.id)).map(
+              (m) => (
+                <motion.div
+                  key={m.id}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white border rounded-xl shadow-sm"
+                  style={{ borderColor: m.color }}
+                >
+                  <span className="text-lg">{m.badge}</span>
+                  <span className="text-xs font-semibold text-gray-700">
+                    {m.label}
+                  </span>
+                </motion.div>
+              ),
+            )}
           </div>
         </div>
       )}
+
+      {/* Your Posts Grid */}
+      <div className="px-4">
+        <h3 className="text-sm font-bold text-gray-900 mb-3">
+          {ownPosts.length > 0
+            ? `Your Posts (${ownPosts.length})`
+            : "Your Posts"}
+        </h3>
+        {ownPosts.length === 0 ? (
+          <div
+            className="text-center py-12 text-gray-400"
+            data-ocid="profile.posts.empty_state"
+          >
+            <p className="text-4xl mb-2">📷</p>
+            <p className="text-sm">No posts yet</p>
+            <p className="text-xs mt-1">Go to Feed to share your first post!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-1">
+            {ownPosts.map((post, idx) => (
+              <button
+                type="button"
+                key={post.id}
+                className="aspect-square rounded-sm overflow-hidden relative group"
+                onClick={() => setSelectedPost(post.id)}
+                data-ocid={`profile.post.item.${idx + 1}`}
+              >
+                <div
+                  className="w-full h-full flex items-center justify-center text-3xl transition-transform group-hover:scale-110"
+                  style={{
+                    background: post.isYTPromo
+                      ? YT_GRADIENT
+                      : GRADIENTS[idx % GRADIENTS.length],
+                  }}
+                >
+                  {post.emojiTheme || "✨"}
+                </div>
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-white text-xs font-semibold">
+                    ❤️ {post.likes}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Post Detail Modal */}
+      <AnimatePresence>
+        {selectedPostData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedPost(null)}
+            data-ocid="profile.post.modal"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-white rounded-2xl overflow-hidden max-w-sm w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="aspect-square flex items-center justify-center text-7xl"
+                style={
+                  selectedPostData.isYTPromo
+                    ? { background: YT_GRADIENT }
+                    : {
+                        background:
+                          GRADIENTS[
+                            ownPosts.indexOf(selectedPostData) %
+                              GRADIENTS.length
+                          ],
+                      }
+                }
+              >
+                {selectedPostData.emojiTheme || "✨"}
+              </div>
+              <div className="p-4">
+                <p className="text-sm text-gray-800 mb-2">
+                  {selectedPostData.caption}
+                </p>
+                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                  <span>
+                    ❤️ <AnimatedNumber value={selectedPostData.likes} />
+                  </span>
+                  <span>💬 {selectedPostData.comments.length}</span>
+                  <span>🔖 {selectedPostData.bookmarks}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPost(null)}
+                  className="w-full py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+                  data-ocid="profile.post.close_button"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

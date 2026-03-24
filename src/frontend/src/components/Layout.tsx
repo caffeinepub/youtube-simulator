@@ -14,6 +14,7 @@ import { ConfettiEffect } from "./ConfettiEffect";
 import { DailyLoginModal } from "./DailyLoginModal";
 import {
   BellIcon,
+  BusinessIcon,
   CloseIcon,
   EditIcon,
   ExploreIcon,
@@ -1580,6 +1581,42 @@ export default function Layout({
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                     My Channel
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate({ name: "business" });
+                    if (isMobile) setSidebarOpen(false);
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "7px 14px",
+                    border: "none",
+                    backgroundColor:
+                      currentPage === "business" ? "#e8e8e8" : "transparent",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: currentPage === "business" ? "#cc0000" : "#333",
+                    fontWeight: currentPage === "business" ? "bold" : "normal",
+                    borderLeft:
+                      currentPage === "business"
+                        ? "3px solid #cc0000"
+                        : "3px solid transparent",
+                  }}
+                  data-ocid="nav.link"
+                >
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <BusinessIcon />
+                    My Business
                   </span>
                 </button>
               </>

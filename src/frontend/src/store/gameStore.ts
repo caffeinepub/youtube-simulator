@@ -199,6 +199,8 @@ export interface CreatorBusiness {
   businessSponsorshipHistory: BusinessDeal[];
   lastSponsorshipOfferedAt: number | null;
   activeProductDrop: ProductDrop | null;
+  isShutdown: boolean;
+  facilities: Record<string, boolean>;
 }
 
 export interface GameState {
@@ -400,7 +402,14 @@ type GameAction =
   | { type: "ACCEPT_BUSINESS_SPONSORSHIP" }
   | { type: "DECLINE_BUSINESS_SPONSORSHIP" }
   | { type: "CREATE_PRODUCT_DROP"; payload: { name: string } }
-  | { type: "PROMOTE_DROP" };
+  | { type: "PROMOTE_DROP" }
+  | { type: "SHUTDOWN_BUSINESS" }
+  | { type: "REOPEN_BUSINESS" }
+  | { type: "DELETE_BUSINESS" }
+  | {
+      type: "PURCHASE_FACILITY";
+      payload: { facilityId: string; cost: number };
+    };
 
 const STORAGE_KEY = "yt-sim-v15";
 
@@ -539,6 +548,8 @@ function loadFromStorage(): GameState {
                 parsed.creatorBusiness.lastSponsorshipOfferedAt ?? null,
               activeProductDrop:
                 parsed.creatorBusiness.activeProductDrop ?? null,
+              isShutdown: parsed.creatorBusiness.isShutdown ?? false,
+              facilities: parsed.creatorBusiness.facilities ?? {},
             }
           : base.creatorBusiness,
       };
@@ -1483,11 +1494,14 @@ function reducer(state: GameState, action: GameAction): GameState {
         businessSponsorshipHistory: [],
         lastSponsorshipOfferedAt: null,
         activeProductDrop: null,
+        isShutdown: false,
+        facilities: {},
       };
       return { ...state, creatorBusiness: biz };
     }
     case "TICK_BUSINESS": {
       if (!state.creatorBusiness || !state.channel) return state;
+      if (state.creatorBusiness.isShutdown) return state;
       const subs = state.channel.subscribers;
       const totalViews = state.videos.reduce((s, v) => s + v.views, 0);
       const adBoostActive =
@@ -1507,9 +1521,12 @@ function reducer(state: GameState, action: GameAction): GameState {
         ? Math.floor(totalViews * 0.001 + 500)
         : Math.floor(totalViews * 0.0005 + 100);
       const staffMult = 1 + (state.creatorBusiness.staffCount ?? 1) * 0.1;
+      const flagshipMult = state.creatorBusiness.facilities?.flagship_store
+        ? 1.2
+        : 1.0;
       const branchCount = state.creatorBusiness.branchCount ?? 1;
       const custTick = Math.floor(subs / 10 / 100) * branchCount;
-      const revTickFinal = Math.floor(revTick * staffMult);
+      const revTickFinal = Math.floor(revTick * staffMult * flagshipMult);
       const newCustomers = state.creatorBusiness.customers + custTick;
 
       // AI customer reviews for launched products
@@ -1540,20 +1557,26 @@ function reducer(state: GameState, action: GameAction): GameState {
         "Worth every penny",
         "Brilliant product!",
       ];
+      const hasMarketingTeam =
+        state.creatorBusiness.facilities?.marketing_team ?? false;
       const updatedProductsWithReviews = (
         state.creatorBusiness.products ?? []
       ).map((p) => {
-        if (p.status !== "launched") return p;
-        const reviews = p.customerReviews ?? [];
-        if (reviews.length >= 50) return p;
-        if (Math.random() > 0.15) return p;
+        // Marketing team passive fame boost
+        const marketingFameBoost =
+          hasMarketingTeam && p.status === "launched" ? 5 : 0;
+        const pp = { ...p, fame: p.fame + marketingFameBoost };
+        if (pp.status !== "launched") return pp;
+        const reviews = pp.customerReviews ?? [];
+        if (reviews.length >= 50) return pp;
+        if (Math.random() > 0.15) return pp;
         const rng = Math.random();
         const rating =
           rng < 0.1 ? 1 : rng < 0.2 ? 2 : rng < 0.4 ? 3 : rng < 0.7 ? 4 : 5;
         const comment =
           REVIEW_COMMENTS[Math.floor(Math.random() * REVIEW_COMMENTS.length)];
         return {
-          ...p,
+          ...pp,
           customerReviews: [
             ...reviews,
             {
@@ -1830,6 +1853,46 @@ function reducer(state: GameState, action: GameAction): GameState {
           branchCount: (state.creatorBusiness.branchCount ?? 1) + 1,
           reach: state.creatorBusiness.reach + 100000,
           customers: state.creatorBusiness.customers + 1000,
+        },
+      };
+    }
+    case "SHUTDOWN_BUSINESS": {
+      if (!state.creatorBusiness) return state;
+      return {
+        ...state,
+        creatorBusiness: { ...state.creatorBusiness, isShutdown: true },
+      };
+    }
+    case "REOPEN_BUSINESS": {
+      if (!state.creatorBusiness) return state;
+      return {
+        ...state,
+        creatorBusiness: { ...state.creatorBusiness, isShutdown: false },
+      };
+    }
+    case "DELETE_BUSINESS": {
+      return { ...state, creatorBusiness: null };
+    }
+    case "PURCHASE_FACILITY": {
+      if (!state.creatorBusiness || state.coins < action.payload.cost)
+        return state;
+      const fid = action.payload.facilityId;
+      if (state.creatorBusiness.facilities?.[fid]) return state;
+      const newFacilities = {
+        ...(state.creatorBusiness.facilities ?? {}),
+        [fid]: true,
+      };
+      let extra: Partial<typeof state.creatorBusiness> = {};
+      if (fid === "flagship_store") {
+        extra = { customers: state.creatorBusiness.customers + 5000 };
+      }
+      return {
+        ...state,
+        coins: state.coins - action.payload.cost,
+        creatorBusiness: {
+          ...state.creatorBusiness,
+          facilities: newFacilities,
+          ...extra,
         },
       };
     }
@@ -2168,5 +2231,10 @@ export function useGame() {
     createProductDrop: (name: string) =>
       dispatch({ type: "CREATE_PRODUCT_DROP", payload: { name } }),
     promoteDrop: () => dispatch({ type: "PROMOTE_DROP" }),
+    shutdownBusiness: () => dispatch({ type: "SHUTDOWN_BUSINESS" }),
+    reopenBusiness: () => dispatch({ type: "REOPEN_BUSINESS" }),
+    deleteBusiness: () => dispatch({ type: "DELETE_BUSINESS" }),
+    purchaseFacility: (facilityId: string, cost: number) =>
+      dispatch({ type: "PURCHASE_FACILITY", payload: { facilityId, cost } }),
   };
 }

@@ -1,32 +1,26 @@
 # YouTube Simulator
 
 ## Current State
-Creator Business system is live (Version 21) with: business setup, product lifecycle (create → review → launch → shoutout), customer reviews (AI star ratings), facilities/upgrades, business milestones, and YouTube promotion tools.
-
-The `CreatorBusiness` interface in `gameStore.ts` already tracks: name, businessType, revenue, customers, products, brandValue, fame, staffCount, branchCount, milestones, etc.
-
-BusinessTab.tsx (~1667 lines) handles all business UI. It uses tabs: Overview, Products, Facilities, Shoutouts, Reviews.
+Business system exists with: setup (8 categories), product lifecycle (create/review/launch/shoutout), facilities tab (basic upgrades), rivals, sponsorships, product drops, overview stats, reviews tab, milestones. No delete/shutdown option. Facilities has: Staff, Branch, Ads, Promote, Marketing, R&D, Warehouse, Customer Service, Social Media Manager, Flagship Store.
 
 ## Requested Changes (Diff)
 
 ### Add
-1. **Competitor Businesses** -- 5 AI-run rival businesses in the same category as the player. Visible on a leaderboard with their stats (customers, revenue, fame). Player can "outcompete" them via shoutouts/product drops.
-2. **Business-Exclusive Sponsorships** -- Brands approach the player with collab deals based on business fame score. These appear as notifications/modals. Accepting earns coins + revenue boost. Declining passes.
-3. **Product Drops** -- Limited-time product launch with countdown timer. Player must promote it (shoutout) before timer ends for a viral sales spike. Failed drops show a failure notification.
+- **Shutdown button**: Temporarily pauses the business (revenue stops, all data preserved). Reopen button to resume.
+- **Delete button**: Permanently deletes the business with a confirmation dialog. Allows starting a new one after.
+- 6 new facilities (Marketing Team, R&D Lab, Warehouse, Customer Service, Social Media Manager, Flagship Store) — already added in prior version, confirm they are present or add if missing.
 
 ### Modify
-- `CreatorBusiness` interface in `gameStore.ts`: add `competitors` array, `businessSponsorships` array, `productDrops` array
-- `BusinessTab.tsx`: add new sub-tabs for Competitors and Drops; wire sponsorship modal
-- `gameStore.ts` reducer: add actions `ADD_COMPETITOR`, `ACCEPT_BUSINESS_SPONSORSHIP`, `DECLINE_BUSINESS_SPONSORSHIP`, `CREATE_PRODUCT_DROP`, `PROMOTE_DROP`, `TICK_DROPS`
-- Business tick logic: trigger business sponsorship offers based on fame threshold
+- Business Overview tab or header: add Shutdown and Delete buttons clearly visible
+- Business state in gameStore: add `isShutdown: boolean` field
+- When shutdown: show "Business is paused" banner, disable revenue ticks, show Reopen button
 
 ### Remove
-- Nothing removed
+- Nothing
 
 ## Implementation Plan
-1. Update `CreatorBusiness` interface to add `competitors`, `businessSponsorships`, `productDrops` fields
-2. Add competitor businesses data (5 AI names, fake stats, same category)
-3. Add reducer actions for all new features
-4. Update business tick: auto-generate business sponsorship offers when fame > threshold; tick drop countdowns
-5. Update `BusinessTab.tsx`: add Competitors tab (leaderboard), Drops tab (create drop, countdown, promote button), wire business sponsorship modal inline
-6. Persist new fields via localStorage migration guards
+1. Add `businessShutdown: boolean` to business state in gameStore
+2. In BusinessTab component, add Shutdown/Reopen toggle button and Delete button with confirmation dialog
+3. Pause revenue/fame ticks when `businessShutdown === true`
+4. Delete wipes `business: null` from game state
+5. Ensure all 6 new facilities are in the Facilities tab with proper costs and effects

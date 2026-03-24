@@ -13,30 +13,8 @@ export interface IGPost {
   authorAvatar: string;
   liked: boolean;
   bookmarked: boolean;
-}
-
-export interface IGReel {
-  id: string;
-  thumbnailUrl: string;
-  caption: string;
-  likes: number;
-  views: number;
-  comments: Array<{ author: string; text: string }>;
-  timestamp: number;
-  isOwn: boolean;
-  authorName: string;
-  liked: boolean;
-}
-
-export interface IGStory {
-  id: string;
-  imageUrl: string;
-  viewCount: number;
-  timestamp: number;
-  isOwn: boolean;
-  authorName: string;
-  authorAvatar: string;
-  viewed: boolean;
+  emojiTheme?: string;
+  isYTPromo?: boolean;
 }
 
 export interface IGDM {
@@ -46,13 +24,9 @@ export interface IGDM {
   messages: Array<{ text: string; fromUser: boolean; timestamp: number }>;
   timestamp: number;
   unread: boolean;
-}
-
-export interface IGInsights {
-  reach: number;
-  impressions: number;
-  profileVisits: number;
-  followerGrowth: number[];
+  isBrand?: boolean;
+  reward?: { coins: number; followers: number };
+  dealAccepted?: boolean | null;
 }
 
 export interface InstagramState {
@@ -62,45 +36,32 @@ export interface InstagramState {
   followers: number;
   following: number;
   posts: IGPost[];
-  reels: IGReel[];
-  stories: IGStory[];
   dms: IGDM[];
-  insights: IGInsights;
-  activeTab:
-    | "feed"
-    | "reels"
-    | "explore"
-    | "dms"
-    | "live"
-    | "profile"
-    | "insights";
-  isLive: boolean;
-  liveViewers: number;
-  liveLikes: number;
-  liveDuration: number;
+  activeTab: "feed" | "explore" | "dms" | "profile";
+  ytLinkedInBio: boolean;
+  milestonesReached: string[];
 }
 
 type IGAction =
   | { type: "TOGGLE_INSTAGRAM_MODE" }
   | { type: "SET_IG_TAB"; payload: InstagramState["activeTab"] }
   | { type: "SET_IG_USERNAME"; payload: string }
+  | { type: "SET_IG_BIO"; payload: string }
   | { type: "LIKE_POST"; payload: { postId: string } }
   | { type: "BOOKMARK_POST"; payload: { postId: string } }
   | { type: "COMMENT_POST"; payload: { postId: string; text: string } }
-  | { type: "ADD_IG_POST"; payload: { imageUrl: string; caption: string } }
-  | { type: "LIKE_REEL"; payload: { reelId: string } }
-  | { type: "ADD_IG_REEL"; payload: { thumbnailUrl: string; caption: string } }
-  | { type: "ADD_IG_STORY"; payload: { imageUrl: string } }
-  | { type: "VIEW_STORY"; payload: { storyId: string } }
+  | { type: "ADD_IG_POST"; payload: { emojiTheme: string; caption: string } }
   | { type: "GAIN_IG_FOLLOWERS"; payload: { amount: number } }
-  | { type: "CROSS_PROMOTE"; payload: { ytSubs: number } }
   | { type: "REPLY_DM"; payload: { dmId: string; text: string } }
   | { type: "ADD_DM"; payload: IGDM }
   | { type: "READ_DM"; payload: { dmId: string } }
+  | { type: "ACCEPT_BRAND_DEAL"; payload: { dmId: string } }
+  | { type: "DECLINE_BRAND_DEAL"; payload: { dmId: string } }
   | { type: "TICK_IG_ALGO" }
-  | { type: "START_IG_LIVE" }
-  | { type: "TICK_IG_LIVE" }
-  | { type: "END_IG_LIVE" };
+  | { type: "TOGGLE_YT_LINK" }
+  | { type: "SHARE_YT_TO_IG" }
+  | { type: "COLLAB_POST" }
+  | { type: "MARK_MILESTONE"; payload: { milestone: string } };
 
 const AI_CREATORS = [
   { name: "alex_creates", avatar: "AC" },
@@ -111,123 +72,121 @@ const AI_CREATORS = [
   { name: "musicbymia", avatar: "MM" },
   { name: "codingwithsam", avatar: "CS" },
   { name: "daily_draws", avatar: "DD" },
-  { name: "the_real_vlogger", avatar: "TV" },
   { name: "gamezilla", avatar: "GZ" },
-];
-
-const POST_SEEDS = [
-  "nature1",
-  "city2",
-  "food3",
-  "sport4",
-  "tech5",
-  "art6",
-  "travel7",
-  "music8",
-  "portrait9",
-  "sunset10",
-  "cafe11",
-  "street12",
+  { name: "travelwithnico", avatar: "TN" },
 ];
 
 const POST_CAPTIONS = [
   "Golden hour never disappoints ✨",
-  "Working on something big 🔥",
-  "This view though 😍",
-  "New recipe, who dis? 🍳",
-  "Grind never stops 💪",
-  "Loving this energy right now",
-  "Creating every single day 🎨",
-  "Adventures await 🌍",
-  "Studio vibes today 🎵",
-  "Level up or go home 🎮",
-  "Fresh drop alert 👀",
-  "Living my best life",
+  "Living my best life 🌟",
+  "New week, new vibes 🎨",
+  "Sometimes you just need a moment like this 🌿",
+  "Behind every great shot is a story 📸",
+  "The journey is the destination 🗺️",
+  "Creating something new every day 🎵",
+  "Nature is the best filter 🌊",
+  "Monday mood: unstoppable 💪",
+  "Art imitates life, life imitates art 🎭",
+  "chasing dreams and sunsets 🌅",
+  "good vibes only ☀️",
+  "Studio session in full swing 🎸",
+  "Coffee + creativity = this 🍵",
+  "New collab dropping soon... 👀",
+];
+
+const POST_EMOJIS = [
+  "🌅",
+  "🎨",
+  "🎵",
+  "🌊",
+  "🌿",
+  "🏔️",
+  "🎭",
+  "🦋",
+  "🌸",
+  "🌙",
+  "🎸",
+  "🍜",
+  "🦊",
+  "🌻",
+  "🎪",
 ];
 
 const DM_MESSAGES = [
-  "Love your content! Keep it up 🔥",
-  "How do you stay so consistent?",
-  "Your last post was 🤯",
-  "Can we collab sometime?",
-  "You inspire me every day!",
-  "Been following you for years, huge fan!",
-  "When's the next post coming?",
+  "omg your content is everything!! 🔥",
+  "bro how do you make it look so easy??",
+  "I've been watching since day one, keep it up!",
+  "Your last post gave me so much inspiration 💫",
+  "Can we collab someday?? 🙏",
+  "literally obsessed with your style",
+  "new subscriber here, already in love with your content!",
+  "you deserve way more followers tbh",
+  "dropped this in my story, hope that's ok!",
+  "your channel helped me through a rough time, thank you ❤️",
+];
+
+const BRAND_OFFERS = [
+  {
+    name: "GlowCo 💄",
+    message:
+      "Hey! We love your vibe and want to send you our new skincare line. Collab?",
+    coins: 5000,
+    followers: 500,
+  },
+  {
+    name: "TechPulse ⚡",
+    message:
+      "We're looking for creators like you to showcase our new smart device. Interested?",
+    coins: 8000,
+    followers: 800,
+  },
+  {
+    name: "FreshBrew ☕",
+    message:
+      "Your aesthetic matches our brand perfectly. Would you be our IG ambassador this month?",
+    coins: 3500,
+    followers: 300,
+  },
+  {
+    name: "SoleKick 👟",
+    message:
+      "Limited collab opportunity — feature our new drop and we'll reward you well.",
+    coins: 6500,
+    followers: 600,
+  },
+  {
+    name: "NomadGear 🎒",
+    message:
+      "We sponsor creators who love adventures. We think you'd be a great fit!",
+    coins: 4500,
+    followers: 400,
+  },
 ];
 
 function generateAIPosts(): IGPost[] {
-  return POST_SEEDS.map((seed, i) => ({
-    id: `ig-post-${i}`,
-    imageUrl: `https://picsum.photos/seed/${seed}/400/400`,
+  return AI_CREATORS.slice(0, 10).map((creator, i) => ({
+    id: `ig-ai-${i}`,
+    imageUrl: "",
     caption: POST_CAPTIONS[i % POST_CAPTIONS.length],
-    likes: Math.floor(Math.random() * 50000) + 1000,
+    likes: Math.floor(Math.random() * 5000) + 200,
     comments: [
-      { author: AI_CREATORS[i % AI_CREATORS.length].name, text: "🔥🔥🔥" },
       {
         author: AI_CREATORS[(i + 1) % AI_CREATORS.length].name,
-        text: "Amazing content!",
+        text: "🔥🔥🔥",
       },
-    ],
-    bookmarks: Math.floor(Math.random() * 5000) + 100,
-    timestamp: Date.now() - i * 3600000,
-    isOwn: false,
-    authorName: AI_CREATORS[i % AI_CREATORS.length].name,
-    authorAvatar: AI_CREATORS[i % AI_CREATORS.length].avatar,
-    liked: false,
-    bookmarked: false,
-  }));
-}
-
-function generateAIReels(): IGReel[] {
-  const seeds = [
-    "reel1",
-    "reel2",
-    "reel3",
-    "reel4",
-    "reel5",
-    "reel6",
-    "reel7",
-    "reel8",
-  ];
-  const captions = [
-    "POV: You just discovered my page 😂",
-    "Day in my life ✨",
-    "This trick blew my mind 🤯",
-    "Honest review after 30 days",
-    "Watch till the end!",
-    "Couldn't believe this worked 😳",
-    "Tutorial: the easy way 📱",
-    "Real talk for a sec 💬",
-  ];
-  return seeds.map((seed, i) => ({
-    id: `ig-reel-${i}`,
-    thumbnailUrl: `https://picsum.photos/seed/${seed}/400/700`,
-    caption: captions[i],
-    likes: Math.floor(Math.random() * 200000) + 5000,
-    views: Math.floor(Math.random() * 1000000) + 50000,
-    comments: [
       {
-        author: AI_CREATORS[i % AI_CREATORS.length].name,
-        text: "Omg this is everything!",
+        author: AI_CREATORS[(i + 2) % AI_CREATORS.length].name,
+        text: "absolutely love this!",
       },
     ],
-    timestamp: Date.now() - i * 7200000,
-    isOwn: false,
-    authorName: AI_CREATORS[i % AI_CREATORS.length].name,
-    liked: false,
-  }));
-}
-
-function generateAIStories(): IGStory[] {
-  return AI_CREATORS.slice(0, 8).map((creator, i) => ({
-    id: `ig-story-${i}`,
-    imageUrl: `https://picsum.photos/seed/story${i}/400/700`,
-    viewCount: Math.floor(Math.random() * 10000),
-    timestamp: Date.now() - i * 1800000,
+    bookmarks: Math.floor(Math.random() * 500) + 10,
+    timestamp: Date.now() - i * 3600000,
     isOwn: false,
     authorName: creator.name,
     authorAvatar: creator.avatar,
-    viewed: false,
+    liked: false,
+    bookmarked: false,
+    emojiTheme: POST_EMOJIS[i % POST_EMOJIS.length],
   }));
 }
 
@@ -235,22 +194,22 @@ function generateAIDMs(): IGDM[] {
   return [
     {
       id: "dm-1",
-      from: "alex_creates",
-      avatar: "AC",
+      from: AI_CREATORS[0].name,
+      avatar: AI_CREATORS[0].avatar,
       messages: [
         {
           text: DM_MESSAGES[0],
           fromUser: false,
-          timestamp: Date.now() - 3600000,
+          timestamp: Date.now() - 1800000,
         },
       ],
-      timestamp: Date.now() - 3600000,
+      timestamp: Date.now() - 1800000,
       unread: true,
     },
     {
       id: "dm-2",
-      from: "wanderlust.kat",
-      avatar: "WK",
+      from: AI_CREATORS[1].name,
+      avatar: AI_CREATORS[1].avatar,
       messages: [
         {
           text: DM_MESSAGES[3],
@@ -263,11 +222,11 @@ function generateAIDMs(): IGDM[] {
     },
     {
       id: "dm-3",
-      from: "musicbymia",
-      avatar: "MM",
+      from: AI_CREATORS[2].name,
+      avatar: AI_CREATORS[2].avatar,
       messages: [
         {
-          text: DM_MESSAGES[4],
+          text: DM_MESSAGES[6],
           fromUser: false,
           timestamp: Date.now() - 86400000,
         },
@@ -286,24 +245,14 @@ function getInitialIGState(): InstagramState {
     followers: 0,
     following: 142,
     posts: generateAIPosts(),
-    reels: generateAIReels(),
-    stories: generateAIStories(),
     dms: generateAIDMs(),
-    insights: {
-      reach: 0,
-      impressions: 0,
-      profileVisits: 0,
-      followerGrowth: [0, 0, 0, 0, 0, 0, 0],
-    },
     activeTab: "feed",
-    isLive: false,
-    liveViewers: 0,
-    liveLikes: 0,
-    liveDuration: 0,
+    ytLinkedInBio: false,
+    milestonesReached: [],
   };
 }
 
-const IG_STORAGE_KEY = "yt-sim-instagram-v1";
+const IG_STORAGE_KEY = "yt-sim-instagram-v2";
 
 function loadIGFromStorage(): InstagramState {
   try {
@@ -311,19 +260,20 @@ function loadIGFromStorage(): InstagramState {
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<InstagramState>;
       const base = getInitialIGState();
+      // Ensure activeTab is valid
+      const validTabs = ["feed", "explore", "dms", "profile"];
+      const activeTab = validTabs.includes(parsed.activeTab ?? "")
+        ? (parsed.activeTab as InstagramState["activeTab"])
+        : "feed";
       return {
         ...base,
         ...parsed,
-        isInstagramMode: false, // always start on YouTube
-        isLive: false,
-        liveViewers: 0,
-        liveLikes: 0,
-        liveDuration: 0,
+        activeTab,
+        isInstagramMode: false,
         posts: parsed.posts ?? base.posts,
-        reels: parsed.reels ?? base.reels,
-        stories: parsed.stories ?? base.stories,
         dms: parsed.dms ?? base.dms,
-        insights: parsed.insights ?? base.insights,
+        ytLinkedInBio: parsed.ytLinkedInBio ?? false,
+        milestonesReached: parsed.milestonesReached ?? [],
       };
     }
   } catch {}
@@ -338,6 +288,8 @@ function igReducer(state: InstagramState, action: IGAction): InstagramState {
       return { ...state, activeTab: action.payload };
     case "SET_IG_USERNAME":
       return { ...state, username: action.payload };
+    case "SET_IG_BIO":
+      return { ...state, bio: action.payload };
     case "LIKE_POST":
       return {
         ...state,
@@ -373,7 +325,10 @@ function igReducer(state: InstagramState, action: IGAction): InstagramState {
                 ...p,
                 comments: [
                   ...p.comments,
-                  { author: "you", text: action.payload.text },
+                  {
+                    author: state.username || "you",
+                    text: action.payload.text,
+                  },
                 ],
               }
             : p,
@@ -382,7 +337,7 @@ function igReducer(state: InstagramState, action: IGAction): InstagramState {
     case "ADD_IG_POST": {
       const newPost: IGPost = {
         id: `ig-own-${Date.now()}`,
-        imageUrl: action.payload.imageUrl,
+        imageUrl: "",
         caption: action.payload.caption,
         likes: 0,
         comments: [],
@@ -390,114 +345,36 @@ function igReducer(state: InstagramState, action: IGAction): InstagramState {
         timestamp: Date.now(),
         isOwn: true,
         authorName: state.username || "you",
-        authorAvatar: state.username?.slice(0, 2).toUpperCase() || "ME",
+        authorAvatar: (state.username || "ME").slice(0, 2).toUpperCase(),
         liked: false,
         bookmarked: false,
+        emojiTheme: action.payload.emojiTheme,
       };
       return {
         ...state,
         posts: [newPost, ...state.posts],
         followers: state.followers + Math.floor(state.followers * 0.05) + 10,
-        insights: {
-          ...state.insights,
-          impressions:
-            state.insights.impressions + Math.floor(Math.random() * 5000) + 500,
-          reach: state.insights.reach + Math.floor(Math.random() * 3000) + 200,
-        },
       };
     }
-    case "LIKE_REEL":
-      return {
-        ...state,
-        reels: state.reels.map((r) =>
-          r.id === action.payload.reelId
-            ? {
-                ...r,
-                liked: !r.liked,
-                likes: r.liked ? r.likes - 1 : r.likes + 1,
-              }
-            : r,
-        ),
-      };
-    case "ADD_IG_REEL": {
-      const newReel: IGReel = {
-        id: `ig-reel-own-${Date.now()}`,
-        thumbnailUrl: action.payload.thumbnailUrl,
-        caption: action.payload.caption,
-        likes: 0,
-        views: 0,
-        comments: [],
-        timestamp: Date.now(),
-        isOwn: true,
-        authorName: state.username || "you",
-        liked: false,
-      };
-      return {
-        ...state,
-        reels: [newReel, ...state.reels],
-        followers: state.followers + Math.floor(state.followers * 0.08) + 20,
-      };
-    }
-    case "ADD_IG_STORY": {
-      const newStory: IGStory = {
-        id: `ig-story-own-${Date.now()}`,
-        imageUrl: action.payload.imageUrl,
-        viewCount: 0,
-        timestamp: Date.now(),
-        isOwn: true,
-        authorName: state.username || "you",
-        authorAvatar: state.username?.slice(0, 2).toUpperCase() || "ME",
-        viewed: false,
-      };
-      return { ...state, stories: [newStory, ...state.stories] };
-    }
-    case "VIEW_STORY":
-      return {
-        ...state,
-        stories: state.stories.map((s) =>
-          s.id === action.payload.storyId
-            ? { ...s, viewed: true, viewCount: s.viewCount + 1 }
-            : s,
-        ),
-      };
     case "GAIN_IG_FOLLOWERS":
-      return {
-        ...state,
-        followers: state.followers + action.payload.amount,
-        insights: {
-          ...state.insights,
-          followerGrowth: [
-            ...state.insights.followerGrowth.slice(1),
-            (state.insights.followerGrowth[6] ?? 0) + action.payload.amount,
-          ],
-        },
-      };
-    case "CROSS_PROMOTE": {
-      const boost = Math.floor(action.payload.ytSubs * 0.1);
-      return {
-        ...state,
-        followers: state.followers + boost,
-        bio: `${state.bio} | YouTube creator 📺`,
-      };
-    }
+      return { ...state, followers: state.followers + action.payload.amount };
     case "REPLY_DM":
       return {
         ...state,
-        dms: state.dms.map((dm) =>
-          dm.id === action.payload.dmId
+        dms: state.dms.map((d) =>
+          d.id === action.payload.dmId
             ? {
-                ...dm,
+                ...d,
                 messages: [
-                  ...dm.messages,
+                  ...d.messages,
                   {
                     text: action.payload.text,
                     fromUser: true,
                     timestamp: Date.now(),
                   },
                 ],
-                unread: false,
               }
-            : dm,
+            : d,
         ),
       };
     case "ADD_DM":
@@ -505,63 +382,139 @@ function igReducer(state: InstagramState, action: IGAction): InstagramState {
     case "READ_DM":
       return {
         ...state,
-        dms: state.dms.map((dm) =>
-          dm.id === action.payload.dmId ? { ...dm, unread: false } : dm,
+        dms: state.dms.map((d) =>
+          d.id === action.payload.dmId ? { ...d, unread: false } : d,
         ),
       };
+    case "ACCEPT_BRAND_DEAL": {
+      const dm = state.dms.find((d) => d.id === action.payload.dmId);
+      const reward = dm?.reward ?? { coins: 0, followers: 0 };
+      return {
+        ...state,
+        followers: state.followers + reward.followers,
+        dms: state.dms.map((d) =>
+          d.id === action.payload.dmId
+            ? { ...d, dealAccepted: true, unread: false }
+            : d,
+        ),
+      };
+    }
+    case "DECLINE_BRAND_DEAL":
+      return {
+        ...state,
+        dms: state.dms.map((d) =>
+          d.id === action.payload.dmId
+            ? { ...d, dealAccepted: false, unread: false }
+            : d,
+        ),
+      };
+    case "TOGGLE_YT_LINK":
+      return { ...state, ytLinkedInBio: !state.ytLinkedInBio };
+    case "SHARE_YT_TO_IG": {
+      const ytPost: IGPost = {
+        id: `ig-yt-promo-${Date.now()}`,
+        imageUrl: "",
+        caption:
+          "🎬 New video is up on my YouTube channel! Go watch it now — link in bio! #youtube #creator",
+        likes: Math.floor(state.followers * 0.08) + 50,
+        comments: [
+          { author: AI_CREATORS[0].name, text: "Already watching! 🔥" },
+          { author: AI_CREATORS[1].name, text: "Link dropped! Let's go!" },
+        ],
+        bookmarks: Math.floor(state.followers * 0.02) + 10,
+        timestamp: Date.now(),
+        isOwn: true,
+        authorName: state.username || "you",
+        authorAvatar: (state.username || "ME").slice(0, 2).toUpperCase(),
+        liked: false,
+        bookmarked: false,
+        emojiTheme: "📺",
+        isYTPromo: true,
+      };
+      return {
+        ...state,
+        posts: [ytPost, ...state.posts],
+        followers: state.followers + Math.floor(state.followers * 0.05) + 50,
+      };
+    }
+    case "COLLAB_POST": {
+      const randomCreator =
+        AI_CREATORS[Math.floor(Math.random() * AI_CREATORS.length)];
+      const collabPost: IGPost = {
+        id: `ig-collab-${Date.now()}`,
+        imageUrl: "",
+        caption: `🤝 Collab with @${randomCreator.name}! So much fun creating this together. Go show them some love! 💫`,
+        likes: Math.floor(state.followers * 0.12) + 100,
+        comments: [
+          { author: randomCreator.name, text: "This was so fun! ❤️" },
+          { author: AI_CREATORS[0].name, text: "Goals!! 🙌" },
+        ],
+        bookmarks: Math.floor(state.followers * 0.03) + 20,
+        timestamp: Date.now(),
+        isOwn: true,
+        authorName: state.username || "you",
+        authorAvatar: (state.username || "ME").slice(0, 2).toUpperCase(),
+        liked: false,
+        bookmarked: false,
+        emojiTheme: "🤝",
+      };
+      return {
+        ...state,
+        posts: [collabPost, ...state.posts],
+        followers: state.followers + Math.floor(state.followers * 0.08) + 80,
+      };
+    }
+    case "MARK_MILESTONE":
+      if (state.milestonesReached.includes(action.payload.milestone))
+        return state;
+      return {
+        ...state,
+        milestonesReached: [
+          ...state.milestonesReached,
+          action.payload.milestone,
+        ],
+      };
     case "TICK_IG_ALGO": {
-      const passiveGain = Math.floor(state.followers * 0.002) + 1;
-      const newReels = state.reels.map((r) => ({
-        ...r,
-        views: r.views + Math.floor(Math.random() * 500) + 10,
-        likes: r.isOwn ? Math.floor(r.views * 0.06) : r.likes,
-      }));
-      const newPosts = state.posts.map((p) => ({
+      let followerGain = Math.floor(state.followers * 0.002) + 3;
+      if (state.ytLinkedInBio)
+        followerGain += Math.floor(state.followers * 0.003) + 2;
+      const newFollowers = state.followers + followerGain;
+
+      // Grow post likes organically
+      const updatedPosts = state.posts.map((p) => ({
         ...p,
-        likes: p.isOwn ? p.likes + Math.floor(Math.random() * 20) : p.likes,
+        likes: p.likes + Math.floor(Math.random() * 8) + 1,
       }));
+
+      // Brand DM milestone check
+      let newDms = [...state.dms];
+      const prevFollowers = state.followers;
+      if (prevFollowers < 10000 && newFollowers >= 10000) {
+        const brand =
+          BRAND_OFFERS[Math.floor(Math.random() * BRAND_OFFERS.length)];
+        const brandDm: IGDM = {
+          id: `brand-${Date.now()}`,
+          from: brand.name,
+          avatar: brand.name.slice(0, 2).toUpperCase(),
+          messages: [
+            { text: brand.message, fromUser: false, timestamp: Date.now() },
+          ],
+          timestamp: Date.now(),
+          unread: true,
+          isBrand: true,
+          reward: { coins: brand.coins, followers: brand.followers },
+          dealAccepted: null,
+        };
+        newDms = [brandDm, ...newDms];
+      }
+
       return {
         ...state,
-        followers: state.followers + passiveGain,
-        reels: newReels,
-        posts: newPosts,
-        insights: {
-          ...state.insights,
-          impressions:
-            state.insights.impressions + Math.floor(Math.random() * 200) + 50,
-          profileVisits:
-            state.insights.profileVisits + Math.floor(Math.random() * 20) + 2,
-        },
+        followers: newFollowers,
+        posts: updatedPosts,
+        dms: newDms,
       };
     }
-    case "START_IG_LIVE":
-      return {
-        ...state,
-        isLive: true,
-        liveViewers: Math.floor(state.followers * 0.01) + 10,
-        liveLikes: 0,
-        liveDuration: 0,
-      };
-    case "TICK_IG_LIVE": {
-      const baseGrowth = Math.floor(state.followers * 0.005) + 5;
-      const newViewers =
-        state.liveViewers + baseGrowth + Math.floor(Math.random() * 20);
-      return {
-        ...state,
-        liveViewers: newViewers,
-        liveLikes: Math.floor(newViewers * 0.6),
-        liveDuration: state.liveDuration + 1,
-        followers: state.followers + Math.floor(newViewers * 0.01),
-      };
-    }
-    case "END_IG_LIVE":
-      return {
-        ...state,
-        isLive: false,
-        liveViewers: 0,
-        liveLikes: 0,
-        liveDuration: 0,
-      };
     default:
       return state;
   }
@@ -578,14 +531,7 @@ export function InstagramProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(igReducer, undefined, loadIGFromStorage);
   useEffect(() => {
     try {
-      const {
-        isInstagramMode: _,
-        isLive: __,
-        liveViewers: ___,
-        liveLikes: ____,
-        liveDuration: _____,
-        ...toSave
-      } = state;
+      const { isInstagramMode: _, ...toSave } = state;
       localStorage.setItem(
         IG_STORAGE_KEY,
         JSON.stringify({ ...toSave, isInstagramMode: false }),
@@ -611,33 +557,30 @@ export function useInstagram() {
       dispatch({ type: "SET_IG_TAB", payload: tab }),
     setIGUsername: (name: string) =>
       dispatch({ type: "SET_IG_USERNAME", payload: name }),
+    setIGBio: (bio: string) => dispatch({ type: "SET_IG_BIO", payload: bio }),
     likePost: (postId: string) =>
       dispatch({ type: "LIKE_POST", payload: { postId } }),
     bookmarkPost: (postId: string) =>
       dispatch({ type: "BOOKMARK_POST", payload: { postId } }),
     commentPost: (postId: string, text: string) =>
       dispatch({ type: "COMMENT_POST", payload: { postId, text } }),
-    addIGPost: (imageUrl: string, caption: string) =>
-      dispatch({ type: "ADD_IG_POST", payload: { imageUrl, caption } }),
-    likeReel: (reelId: string) =>
-      dispatch({ type: "LIKE_REEL", payload: { reelId } }),
-    addIGReel: (thumbnailUrl: string, caption: string) =>
-      dispatch({ type: "ADD_IG_REEL", payload: { thumbnailUrl, caption } }),
-    addIGStory: (imageUrl: string) =>
-      dispatch({ type: "ADD_IG_STORY", payload: { imageUrl } }),
-    viewStory: (storyId: string) =>
-      dispatch({ type: "VIEW_STORY", payload: { storyId } }),
+    addIGPost: (emojiTheme: string, caption: string) =>
+      dispatch({ type: "ADD_IG_POST", payload: { emojiTheme, caption } }),
     gainIGFollowers: (amount: number) =>
       dispatch({ type: "GAIN_IG_FOLLOWERS", payload: { amount } }),
-    crossPromote: (ytSubs: number) =>
-      dispatch({ type: "CROSS_PROMOTE", payload: { ytSubs } }),
     replyDM: (dmId: string, text: string) =>
       dispatch({ type: "REPLY_DM", payload: { dmId, text } }),
     addDM: (dm: IGDM) => dispatch({ type: "ADD_DM", payload: dm }),
     readDM: (dmId: string) => dispatch({ type: "READ_DM", payload: { dmId } }),
+    acceptBrandDeal: (dmId: string) =>
+      dispatch({ type: "ACCEPT_BRAND_DEAL", payload: { dmId } }),
+    declineBrandDeal: (dmId: string) =>
+      dispatch({ type: "DECLINE_BRAND_DEAL", payload: { dmId } }),
+    toggleYTLink: () => dispatch({ type: "TOGGLE_YT_LINK" }),
+    shareYTToIG: () => dispatch({ type: "SHARE_YT_TO_IG" }),
+    collabPost: () => dispatch({ type: "COLLAB_POST" }),
+    markMilestone: (milestone: string) =>
+      dispatch({ type: "MARK_MILESTONE", payload: { milestone } }),
     tickIGAlgo: () => dispatch({ type: "TICK_IG_ALGO" }),
-    startIGLive: () => dispatch({ type: "START_IG_LIVE" }),
-    tickIGLive: () => dispatch({ type: "TICK_IG_LIVE" }),
-    endIGLive: () => dispatch({ type: "END_IG_LIVE" }),
   };
 }

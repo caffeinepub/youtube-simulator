@@ -5,6 +5,7 @@ import InstagramLayout from "./components/InstagramLayout";
 import Layout from "./components/Layout";
 import SponsorshipModal from "./components/SponsorshipModal";
 import ViralEventEngine from "./components/ViralEventEngine";
+import BusinessPage from "./pages/BusinessPage";
 import ChannelPage from "./pages/ChannelPage";
 import ExplorePage from "./pages/ExplorePage";
 import FanFestPage from "./pages/FanFestPage";
@@ -38,7 +39,8 @@ export type Page =
   | { name: "library" }
   | { name: "explore" }
   | { name: "live" }
-  | { name: "fanfest" };
+  | { name: "fanfest" }
+  | { name: "business" };
 
 function AppInner() {
   const [page, setPage] = useState<Page>({ name: "home" });
@@ -81,6 +83,8 @@ function AppInner() {
         return <LivePage navigate={navigate} />;
       case "fanfest":
         return <FanFestPage navigate={navigate} />;
+      case "business":
+        return <BusinessPage navigate={navigate} />;
       default:
         return <HomePage navigate={navigate} searchQuery={searchQuery} />;
     }

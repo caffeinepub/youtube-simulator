@@ -946,6 +946,10 @@ export default function StudioPage({ navigate }: StudioPageProps) {
     declineBusinessSponsorship,
     createProductDrop,
     promoteDrop,
+    shutdownBusiness,
+    reopenBusiness,
+    deleteBusiness,
+    purchaseFacility,
   } = useGame();
   const [expandedVideoId, setExpandedVideoId] = useState<string | null>(null);
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
@@ -1701,6 +1705,10 @@ export default function StudioPage({ navigate }: StudioPageProps) {
           onDeclineBusinessSponsorship={declineBusinessSponsorship}
           onCreateProductDrop={createProductDrop}
           onPromoteDrop={promoteDrop}
+          onShutdownBusiness={shutdownBusiness}
+          onReopenBusiness={reopenBusiness}
+          onDeleteBusiness={deleteBusiness}
+          onPurchaseFacility={purchaseFacility}
         />
       )}
       {activeTab === "danger" && (
