@@ -8,11 +8,11 @@ import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
-import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
+import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
+import AccessControl "mo:caffeineai-authorization/access-control";
 
-import MixinStorage "blob-storage/Mixin";
-import Storage "blob-storage/Storage";
+import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
+import Storage "mo:caffeineai-object-storage/Storage";
 
 actor {
   type VideoId = Text;
@@ -90,7 +90,7 @@ actor {
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
-  include MixinStorage();
+  include MixinObjectStorage();
 
   var nextCommentId = 0;
 

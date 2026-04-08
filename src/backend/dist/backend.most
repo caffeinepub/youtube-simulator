@@ -1,0 +1,115 @@
+// Version: 1.0.0
+type Category__164941945 =
+  {#comedy; #education; #gaming; #music; #news; #other; #sports};
+type ChannelId__279479923 = Principal;
+type Channel__349342183 =
+  {
+    creationTime : Time__900049286;
+    description : Text;
+    id : ChannelId__279479923;
+    name : Text;
+    subscriberCount : Nat;
+    videoCount : Nat
+  };
+type CommentId__265911312 = Nat;
+type Comment__473346131 =
+  {
+    author : Principal;
+    id : CommentId__265911312;
+    likes : Nat;
+    text : Text;
+    timestamp : Time__900049286;
+    videoId : VideoId__796947478
+  };
+type Data__159895909<T> = {var count : Nat__490723111; elements : [var ?T]};
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type ExternalBlob__246066408 = Blob;
+type Int__270357528 = Int__616954475;
+type Int__616954475 = Int;
+type Internal__667636161<T> =
+  {children : [var ?Node__92254746<T>]; data : Data__159895909<T>};
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__520550824<T> = {data : Data__159895909<T>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type Node__92254746<T> =
+  {#internal : Internal__667636161<T>; #leaf : Leaf__520550824<T>};
+type Set__532252804<T> = Set__710576254<T>;
+type Set__710576254<T> =
+  {var root : Node__92254746<T>; var size : Nat__490723111};
+type Time__796480547 = Int__270357528;
+type Time__900049286 = Time__796480547;
+type UserProfile__491224006 =
+  {
+    avatar : ExternalBlob__246066408;
+    banner : ExternalBlob__246066408;
+    bio : Text;
+    name : Text
+  };
+type UserRole__1054455867 = {#admin; #guest; #user};
+type VideoId__796947478 = Text;
+type Video__127466529 =
+  {
+    category : Category__164941945;
+    creator : ChannelId__279479923;
+    description : Text;
+    dislikes : Nat;
+    id : VideoId__796947478;
+    isShort : Bool;
+    likes : Nat;
+    tags : [Text];
+    thumbnail : ExternalBlob__246066408;
+    title : Text;
+    uploadTime : Time__900049286;
+    videoFile : ExternalBlob__246066408;
+    views : Nat;
+    watchTime : Nat
+  };
+actor {
+  stable accessControlState :
+    {
+      var adminAssigned : Bool;
+      userRoles : Map__605269027<Principal, UserRole__1054455867>
+    };
+  stable channelSubscriptions :
+    {
+      var root :
+        Node__46230540<ChannelId__279479923, Set__532252804<Principal>>;
+      var size : Nat__490723111
+    };
+  stable channels :
+    {
+      var root : Node__46230540<ChannelId__279479923, Channel__349342183>;
+      var size : Nat__490723111
+    };
+  stable comments :
+    {
+      var root : Node__46230540<CommentId__265911312, Comment__473346131>;
+      var size : Nat__490723111
+    };
+  stable var nextCommentId : Nat;
+  stable userProfiles :
+    {
+      var root : Node__46230540<Principal, UserProfile__491224006>;
+      var size : Nat__490723111
+    };
+  stable videoComments :
+    {
+      var root : Node__46230540<VideoId__796947478, [CommentId__265911312]>;
+      var size : Nat__490723111
+    };
+  stable videos :
+    {
+      var root : Node__46230540<VideoId__796947478, Video__127466529>;
+      var size : Nat__490723111
+    }
+};

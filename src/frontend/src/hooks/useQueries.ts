@@ -1,75 +1,78 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Channel, Comment, Video } from "../backend.d";
-import { useActor } from "./useActor";
+
+// These types mirror what the backend would export if it had video storage.
+// The game is fully offline/localStorage-based so all hooks return empty data.
+export interface Video {
+  id: string;
+  title: string;
+  views: bigint;
+  likes: bigint;
+  dislikes: bigint;
+  description: string;
+  creator: string;
+  thumbnail: { getDirectURL: () => string } | null;
+}
+
+export interface Channel {
+  id: string;
+  name: string;
+  description: string;
+  subscriberCount: bigint;
+}
+
+export interface Comment {
+  id: string;
+  videoId: string;
+  text: string;
+  authorName: string;
+}
 
 export function useGetAllVideos() {
-  const { actor, isFetching } = useActor();
   return useQuery<Video[]>({
     queryKey: ["videos"],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllVideos();
-    },
-    enabled: !!actor && !isFetching,
+    queryFn: async () => [],
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }
 
 export function useGetVideoById(videoId: string | null) {
-  const { actor, isFetching } = useActor();
   return useQuery<Video | null>({
     queryKey: ["video", videoId],
-    queryFn: async () => {
-      if (!actor || !videoId) return null;
-      return actor.getVideoById(videoId);
-    },
-    enabled: !!actor && !isFetching && !!videoId,
+    queryFn: async () => null,
+    staleTime: Number.POSITIVE_INFINITY,
+    enabled: !!videoId,
   });
 }
 
 export function useGetComments(videoId: string | null) {
-  const { actor, isFetching } = useActor();
   return useQuery<Comment[]>({
     queryKey: ["comments", videoId],
-    queryFn: async () => {
-      if (!actor || !videoId) return [];
-      return actor.getCommentsByVideoId(videoId);
-    },
-    enabled: !!actor && !isFetching && !!videoId,
+    queryFn: async () => [],
+    staleTime: Number.POSITIVE_INFINITY,
+    enabled: !!videoId,
   });
 }
 
 export function useGetMyChannel() {
-  const { actor, isFetching } = useActor();
   return useQuery<Channel | null>({
     queryKey: ["myChannel"],
-    queryFn: async () => {
-      if (!actor) return null;
-      return actor.getMyChannel();
-    },
-    enabled: !!actor && !isFetching,
+    queryFn: async () => null,
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }
 
 export function useGetAllChannels() {
-  const { actor, isFetching } = useActor();
   return useQuery<Channel[]>({
     queryKey: ["channels"],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllChannels();
-    },
-    enabled: !!actor && !isFetching,
+    queryFn: async () => [],
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }
 
 export function useIncrementViews() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (videoId: string) => {
-      if (!actor) return;
-      await actor.incrementViews(videoId);
-    },
+    mutationFn: async (_videoId: string) => {},
     onSuccess: (_, videoId) => {
       qc.invalidateQueries({ queryKey: ["video", videoId] });
       qc.invalidateQueries({ queryKey: ["videos"] });
@@ -78,16 +81,9 @@ export function useIncrementViews() {
 }
 
 export function useLikeDislike() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      videoId,
-      like,
-    }: { videoId: string; like: boolean }) => {
-      if (!actor) return;
-      await actor.likeDislikeVideo(videoId, like);
-    },
+    mutationFn: async (_args: { videoId: string; like: boolean }) => {},
     onSuccess: (_, { videoId }) => {
       qc.invalidateQueries({ queryKey: ["video", videoId] });
     },
@@ -95,16 +91,9 @@ export function useLikeDislike() {
 }
 
 export function useAddComment() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      videoId,
-      text,
-    }: { videoId: string; text: string }) => {
-      if (!actor) throw new Error("Not authenticated");
-      return actor.addComment(videoId, text);
-    },
+    mutationFn: async (_args: { videoId: string; text: string }) => {},
     onSuccess: (_, { videoId }) => {
       qc.invalidateQueries({ queryKey: ["comments", videoId] });
     },
@@ -112,16 +101,9 @@ export function useAddComment() {
 }
 
 export function useCreateChannel() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      name,
-      description,
-    }: { name: string; description: string }) => {
-      if (!actor) throw new Error("Not authenticated");
-      return actor.createChannel(name, description);
-    },
+    mutationFn: async (_args: { name: string; description: string }) => {},
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["myChannel"] });
     },
@@ -129,15 +111,9 @@ export function useCreateChannel() {
 }
 
 export function useSubscribe() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (channelId: string) => {
-      if (!actor) throw new Error("Not authenticated");
-      // channelId is a Principal string but subscribe takes ChannelId (Principal)
-      // We need to handle this properly - for now just call with the string as-is
-      await (actor as any).subscribe(channelId);
-    },
+    mutationFn: async (_channelId: string) => {},
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["channels"] });
     },
@@ -145,13 +121,9 @@ export function useSubscribe() {
 }
 
 export function useUnsubscribe() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (channelId: string) => {
-      if (!actor) throw new Error("Not authenticated");
-      await (actor as any).unsubscribe(channelId);
-    },
+    mutationFn: async (_channelId: string) => {},
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["channels"] });
     },

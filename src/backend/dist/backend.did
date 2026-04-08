@@ -1,0 +1,112 @@
+type _ImmutableObjectStorageRefillResult = 
+ record {
+   success: opt bool;
+   topped_up_amount: opt nat;
+ };
+type _ImmutableObjectStorageRefillInformation = record {
+                                                  proposed_top_up_amount:
+                                                   opt nat;};
+type _ImmutableObjectStorageCreateCertificateResult = 
+ record {
+   blob_hash: text;
+   method: text;
+ };
+type VideoId = text;
+type Video = 
+ record {
+   category: Category;
+   creator: ChannelId;
+   description: text;
+   dislikes: nat;
+   id: VideoId;
+   isShort: bool;
+   likes: nat;
+   tags: vec text;
+   thumbnail: ExternalBlob;
+   title: text;
+   uploadTime: Time;
+   videoFile: ExternalBlob;
+   views: nat;
+   watchTime: nat;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = 
+ record {
+   avatar: ExternalBlob;
+   banner: ExternalBlob;
+   bio: text;
+   name: text;
+ };
+type Time = int;
+type ExternalBlob = blob;
+type CommentId = nat;
+type Comment = 
+ record {
+   author: principal;
+   id: CommentId;
+   likes: nat;
+   "text": text;
+   timestamp: Time;
+   videoId: VideoId;
+ };
+type ChannelId = principal;
+type Channel = 
+ record {
+   creationTime: Time;
+   description: text;
+   id: ChannelId;
+   name: text;
+   subscriberCount: nat;
+   videoCount: nat;
+ };
+type Category = 
+ variant {
+   comedy;
+   education;
+   gaming;
+   music;
+   news;
+   other;
+   sports;
+ };
+service : {
+  _immutableObjectStorageBlobsAreLive: (hashes: vec blob) -> (vec bool) query;
+  _immutableObjectStorageBlobsToDelete: () -> (vec blob) query;
+  _immutableObjectStorageConfirmBlobDeletion: (blobs: vec blob) -> ();
+  _immutableObjectStorageCreateCertificate: (blobHash: text) ->
+   (_ImmutableObjectStorageCreateCertificateResult);
+  _immutableObjectStorageRefillCashier: (refillInformation:
+   opt _ImmutableObjectStorageRefillInformation) ->
+   (_ImmutableObjectStorageRefillResult);
+  _immutableObjectStorageUpdateGatewayPrincipals: () -> ();
+  _initializeAccessControl: () -> ();
+  addComment: (videoId: VideoId, "text": text) -> (CommentId);
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  createChannel: (name: text, description: text) -> (ChannelId);
+  getAllChannels: () -> (vec Channel) query;
+  getAllVideos: () -> (vec Video) query;
+  getCallerUserProfile: () -> (opt UserProfile) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getCommentsByVideoId: (videoId: VideoId) -> (vec Comment) query;
+  getMyChannel: () -> (opt Channel) query;
+  getMyVideos: () -> (vec Video) query;
+  getSubscribers: (channelId: ChannelId) -> (vec principal) query;
+  getSubscriptionCount: (channelId: ChannelId) -> (nat) query;
+  getUserProfile: (user: principal) -> (opt UserProfile) query;
+  getVideoById: (videoId: VideoId) -> (opt Video) query;
+  incrementViews: (videoId: VideoId) -> ();
+  isCallerAdmin: () -> (bool) query;
+  likeDislikeVideo: (videoId: VideoId, like: bool) -> ();
+  saveCallerUserProfile: (profile: UserProfile) -> ();
+  subscribe: (channelId: ChannelId) -> ();
+  unsubscribe: (channelId: ChannelId) -> ();
+  updateMyChannel: (name: text, description: text) -> ();
+  uploadVideo: (title: text, description: text, tags: vec text, category:
+   Category, thumbnail: ExternalBlob, videoFile: ExternalBlob, isShort:
+   bool) -> (VideoId);
+}

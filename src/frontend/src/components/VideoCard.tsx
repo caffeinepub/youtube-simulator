@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { Page } from "../App";
-import type { Video } from "../backend.d";
 import type { MockVideo } from "../data/mockVideos";
 import { formatViews } from "../data/mockVideos";
+import type { Video } from "../hooks/useQueries";
 import { useGame } from "../store/gameStore";
 import AnimatedNumber from "./AnimatedNumber";
 
