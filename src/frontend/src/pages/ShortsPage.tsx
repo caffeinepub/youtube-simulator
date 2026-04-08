@@ -1,4 +1,5 @@
 import type { Page } from "../App";
+import { ShortsIcon } from "../components/Icons";
 import { formatViews, mockVideos } from "../data/mockVideos";
 
 interface ShortsPageProps {
@@ -38,9 +39,13 @@ export default function ShortsPage({ navigate }: ShortsPageProps) {
             fontWeight: "bold",
             color: "#333",
             margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          🎥 YouTube Shorts
+          <ShortsIcon className="w-4 h-4" style={{ color: "#cc0000" }} />
+          YouTube Shorts
         </h2>
         <span
           style={{

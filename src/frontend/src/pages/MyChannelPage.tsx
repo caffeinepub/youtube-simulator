@@ -3,6 +3,19 @@ import { toast } from "sonner";
 import type { Page } from "../App";
 import { AchievementPanel } from "../components/AchievementPanel";
 import AnimatedNumber from "../components/AnimatedNumber";
+import {
+  AnalyticsIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  CoinIcon,
+  PlayIcon,
+  RefreshIcon,
+  StudioIcon,
+  ThumbUpIcon,
+  TrophyIcon,
+  UploadIcon,
+  VideoIcon,
+} from "../components/Icons";
 import { formatViews } from "../data/mockVideos";
 import { DEFAULT_BIOS } from "../data/presets";
 import { useGame } from "../store/gameStore";
@@ -32,7 +45,7 @@ const AWARD_TIERS = [
   {
     tier: "Silver",
     threshold: 100000,
-    emoji: "🥈",
+    icon: "🥈",
     color: "#9e9e9e",
     bg: "#f5f5f5",
     label: "100K Play Button",
@@ -40,7 +53,7 @@ const AWARD_TIERS = [
   {
     tier: "Gold",
     threshold: 1000000,
-    emoji: "🥇",
+    icon: "🥇",
     color: "#ffd700",
     bg: "#fffde7",
     label: "1M Play Button",
@@ -48,7 +61,7 @@ const AWARD_TIERS = [
   {
     tier: "Diamond",
     threshold: 10000000,
-    emoji: "💎",
+    icon: "💎",
     color: "#00bcd4",
     bg: "#e0f7fa",
     label: "10M Play Button",
@@ -56,7 +69,7 @@ const AWARD_TIERS = [
   {
     tier: "Ruby",
     threshold: 50000000,
-    emoji: "❤️",
+    icon: "❤",
     color: "#e91e63",
     bg: "#fce4ec",
     label: "50M Play Button",
@@ -64,7 +77,7 @@ const AWARD_TIERS = [
   {
     tier: "Custom",
     threshold: 100000000,
-    emoji: "🏆",
+    icon: "★",
     color: "#cc0000",
     bg: "#fff0f0",
     label: "100M Custom Award",
@@ -100,8 +113,17 @@ function PollsSection() {
           marginBottom: "12px",
         }}
       >
-        <span style={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}>
-          &#x1F4CA; Community Polls
+        <span
+          style={{
+            fontSize: "13px",
+            fontWeight: "bold",
+            color: "#333",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+          }}
+        >
+          <AnalyticsIcon size={14} /> Community Polls
         </span>
         <button
           type="button"
@@ -155,9 +177,16 @@ function PollsSection() {
               }}
             >
               <span
-                style={{ color: "#fff", fontWeight: "bold", fontSize: "14px" }}
+                style={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
               >
-                &#x1F4CA; Create Community Poll
+                <AnalyticsIcon size={14} /> Create Community Poll
               </span>
               <button
                 type="button"
@@ -167,11 +196,14 @@ function PollsSection() {
                   border: "none",
                   color: "#fff",
                   cursor: "pointer",
-                  fontSize: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "2px",
                 }}
                 data-ocid="channel.close_button"
               >
-                &#x00D7;
+                <CloseIcon size={16} />
               </button>
             </div>
             <div
@@ -226,10 +258,13 @@ function PollsSection() {
                           border: "none",
                           cursor: "pointer",
                           color: "#aaa",
-                          fontSize: "16px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "2px",
                         }}
                       >
-                        &#x00D7;
+                        <CloseIcon size={14} />
                       </button>
                     )}
                   </div>
@@ -446,9 +481,12 @@ function AwardsSection({
           fontWeight: "bold",
           color: "#333",
           margin: "0 0 4px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
         }}
       >
-        🏆 Creator Awards
+        <TrophyIcon size={15} /> Creator Awards
       </h3>
       <p style={{ fontSize: "11px", color: "#888", margin: "0 0 16px" }}>
         Earn play button awards as your channel grows.
@@ -479,7 +517,7 @@ function AwardsSection({
               data-ocid={`channel.item.${AWARD_TIERS.indexOf(award) + 1}`}
             >
               <div style={{ fontSize: "36px", marginBottom: "6px" }}>
-                {award.emoji}
+                {award.icon}
               </div>
               <div
                 style={{
@@ -722,7 +760,7 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
 
   const handleVerifyRequest = () => {
     requestVerification();
-    toast.success("🔄 Verification requested! Usually takes about 25 seconds.");
+    toast.success("Verification requested! Usually takes about 25 seconds.");
   };
 
   return (
@@ -760,9 +798,12 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
             fontWeight: "bold",
             color: "#333",
             marginBottom: "8px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          &#x1F3AC; Channel Trailer
+          <VideoIcon size={13} /> Channel Trailer
         </div>
         {trailerVideo ? (
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -804,10 +845,13 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                     cursor: "pointer",
                     fontSize: "11px",
                     color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
                   }}
                   data-ocid="channel.primary_button"
                 >
-                  &#x25B6; Watch Trailer
+                  <PlayIcon size={10} /> Watch Trailer
                 </button>
                 <button
                   type="button"
@@ -855,7 +899,7 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               borderRadius: "3px",
             }}
           >
-            <span style={{ fontSize: "24px" }}>&#x1F3AC;</span>
+            <VideoIcon size={24} color="#c0c0c0" />
             <div>
               <div
                 style={{ fontSize: "12px", color: "#555", marginBottom: "4px" }}
@@ -874,10 +918,13 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                     cursor: "pointer",
                     fontSize: "11px",
                     color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
                   }}
                   data-ocid="channel.primary_button"
                 >
-                  &#x1F3AC; Set Channel Trailer
+                  <VideoIcon size={11} /> Set Channel Trailer
                 </button>
               ) : (
                 <span style={{ fontSize: "12px", color: "#aaa" }}>
@@ -924,9 +971,16 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               }}
             >
               <span
-                style={{ color: "#fff", fontWeight: "bold", fontSize: "14px" }}
+                style={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
               >
-                &#x1F3AC; Choose Channel Trailer
+                <VideoIcon size={14} /> Choose Channel Trailer
               </span>
               <button
                 type="button"
@@ -936,11 +990,14 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                   border: "none",
                   color: "#fff",
                   cursor: "pointer",
-                  fontSize: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "2px",
                 }}
                 data-ocid="channel.close_button"
               >
-                &#x00D7;
+                <CloseIcon size={16} />
               </button>
             </div>
             <div
@@ -1108,12 +1165,10 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                   backgroundColor: "#1976d2",
                   borderRadius: "50%",
                   color: "#fff",
-                  fontSize: "12px",
-                  fontWeight: "bold",
                   flexShrink: 0,
                 }}
               >
-                ✓
+                <CheckCircleIcon size={14} />
               </span>
             )}
             {verificationStatus === "pending" && (
@@ -1125,9 +1180,12 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                   border: "1px solid #ffe0b2",
                   borderRadius: "2px",
                   padding: "2px 6px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
                 }}
               >
-                🔄 Pending review...
+                <RefreshIcon size={11} /> Pending review...
               </span>
             )}
           </div>
@@ -1163,7 +1221,23 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                 fontWeight: 600,
               }}
             >
-              <span>📌 Promoting:</span>
+              <span style={{ display: "flex", alignItems: "center" }}>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="12" y1="17" x2="12" y2="22" />
+                  <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z" />
+                </svg>
+              </span>
+              <span>Promoting:</span>
               <span>{creatorBusiness.name}</span>
               <span style={{ opacity: 0.7, fontWeight: 400 }}>
                 · {creatorBusiness.businessType}
@@ -1185,10 +1259,13 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                 fontSize: "11px",
                 color: "#fff",
                 fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
               data-ocid="channel.secondary_button"
             >
-              ✓ Request Verification
+              <CheckCircleIcon size={12} /> Request Verification
             </button>
           )}
         </div>
@@ -1205,10 +1282,13 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               fontSize: "12px",
               color: "#fff",
               fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
             }}
             data-ocid="channel.primary_button"
           >
-            + Upload Video
+            <UploadIcon size={13} /> Upload Video
           </button>
           <button
             type="button"
@@ -1222,10 +1302,13 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
               fontSize: "12px",
               color: "#fff",
               fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
             }}
             data-ocid="channel.secondary_button"
           >
-            &#x1F3A8; Studio
+            <StudioIcon size={13} /> Studio
           </button>
         </div>
       </div>
@@ -1290,7 +1373,7 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
             gap: "12px",
           }}
         >
-          <span style={{ fontSize: "28px" }}>🏺</span>
+          <CoinIcon size={28} color="#f59e0b" />
           <div>
             <div
               style={{ fontSize: "12px", fontWeight: "bold", color: "#555" }}
@@ -1338,14 +1421,29 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                 color: activeTab === tab ? "#cc0000" : "#555",
                 marginBottom: "-2px",
                 whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
               }}
               data-ocid="channel.tab"
             >
-              {tab === "videos"
-                ? `\u{1F3A5} Videos (${videos.length})`
-                : tab === "community"
-                  ? "\u{1F4CA} Community"
-                  : "\u{1F3C6} Awards"}
+              {tab === "videos" ? (
+                <>
+                  <VideoIcon size={13} /> Videos ({videos.length})
+                </>
+              ) : tab === "community" ? (
+                <>
+                  <AnalyticsIcon size={13} /> Community
+                </>
+              ) : tab === "awards" ? (
+                <>
+                  <TrophyIcon size={13} /> Awards
+                </>
+              ) : (
+                <>
+                  <ThumbUpIcon size={13} /> Achievements
+                </>
+              )}
             </button>
           ),
         )}
@@ -1364,8 +1462,14 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
             }}
             data-ocid="channel.empty_state"
           >
-            <div style={{ fontSize: "32px", marginBottom: "8px" }}>
-              &#x1F3A5;
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: "8px",
+              }}
+            >
+              <VideoIcon size={32} color="#c0c0c0" />
             </div>
             <div style={{ fontSize: "13px" }}>
               No videos yet. Upload your first video!
@@ -1438,8 +1542,17 @@ export default function MyChannelPage({ navigate }: MyChannelPageProps) {
                   >
                     {v.title}
                   </div>
-                  <div style={{ fontSize: "10px", color: "#888" }}>
-                    {formatViews(v.views)} &middot; &#x1F44D; {v.likes}
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "#888",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    {formatViews(v.views)} &middot; <ThumbUpIcon size={10} />{" "}
+                    {v.likes}
                   </div>
                 </div>
               </button>

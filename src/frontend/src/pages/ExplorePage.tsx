@@ -1,4 +1,13 @@
 import type { Page } from "../App";
+import {
+  ExploreIcon,
+  GamepadIcon,
+  MemeReactionIcon,
+  MicIcon,
+  TagIcon,
+  TrendingIcon,
+  VideoCamIcon,
+} from "../components/Icons";
 import { formatViews, mockVideos } from "../data/mockVideos";
 
 interface ExplorePageProps {
@@ -6,12 +15,22 @@ interface ExplorePageProps {
 }
 
 const CATEGORIES = [
-  { name: "Music", icon: "🎵", color: "#e53935", key: "music" },
-  { name: "Gaming", icon: "🎮", color: "#1e88e5", key: "gaming" },
-  { name: "Comedy", icon: "😂", color: "#f57c00", key: "comedy" },
-  { name: "Education", icon: "📚", color: "#388e3c", key: "education" },
-  { name: "Sports", icon: "⚽", color: "#00897b", key: "sports" },
-  { name: "Other", icon: "🎬", color: "#5e35b1", key: "other" },
+  { name: "Music", IconComp: MicIcon, color: "#e53935", key: "music" },
+  { name: "Gaming", IconComp: GamepadIcon, color: "#1e88e5", key: "gaming" },
+  {
+    name: "Comedy",
+    IconComp: MemeReactionIcon,
+    color: "#f57c00",
+    key: "comedy",
+  },
+  {
+    name: "Education",
+    IconComp: TrendingIcon,
+    color: "#388e3c",
+    key: "education",
+  },
+  { name: "Sports", IconComp: TagIcon, color: "#00897b", key: "sports" },
+  { name: "Other", IconComp: VideoCamIcon, color: "#5e35b1", key: "other" },
 ];
 
 export default function ExplorePage({ navigate }: ExplorePageProps) {
@@ -30,9 +49,13 @@ export default function ExplorePage({ navigate }: ExplorePageProps) {
             fontWeight: "bold",
             color: "#333",
             margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          🔍 Explore
+          <ExploreIcon className="w-4 h-4" style={{ color: "#cc0000" }} />
+          Explore
         </h2>
       </div>
 
@@ -56,7 +79,7 @@ export default function ExplorePage({ navigate }: ExplorePageProps) {
                 marginBottom: "0",
               }}
             >
-              <span style={{ fontSize: "20px" }}>{cat.icon}</span>
+              <cat.IconComp className="w-5 h-5" />
               <span style={{ fontWeight: "bold", fontSize: "14px" }}>
                 {cat.name}
               </span>

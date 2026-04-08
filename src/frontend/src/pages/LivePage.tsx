@@ -1,6 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Page } from "../App";
 import AnimatedNumber from "../components/AnimatedNumber";
+import {
+  ChannelIcon,
+  CloseIcon,
+  CoinIcon,
+  EmojiIcon,
+  LiveChatIcon,
+  LiveIcon,
+  PinIcon,
+  SendIcon,
+  ShareIcon,
+  ShieldIcon,
+  SuperChatIcon,
+  ThumbDownIcon,
+  ThumbUpIcon,
+  TrophyIcon,
+  ViewerIcon,
+} from "../components/Icons";
 import { useGame } from "../store/gameStore";
 
 interface LivePageProps {
@@ -52,19 +69,19 @@ const AI_LIVE_STREAMS: AILiveStream[] = [
     viewers: 12400,
     avatarColor: "#1a73e8",
     startedAgo: "2 hours ago",
-    badge: "🔴",
+    badge: "live",
   },
   {
     id: "live-2",
     channelName: "GamingWithSarah",
     channelId: "ch-gamingsarah",
-    title: "Elden Ring NG+7 — Can I Beat the Final Boss? 🎮",
+    title: "Elden Ring NG+7 — Can I Beat the Final Boss?",
     category: "Gaming",
     thumbnail: "https://picsum.photos/seed/live2/640/360",
     viewers: 38200,
     avatarColor: "#9c27b0",
     startedAgo: "45 minutes ago",
-    badge: "🔴",
+    badge: "live",
   },
   {
     id: "live-3",
@@ -81,19 +98,19 @@ const AI_LIVE_STREAMS: AILiveStream[] = [
     id: "live-4",
     channelName: "CryptoAnalytics",
     channelId: "ch-cryptoanalytics",
-    title: "LIVE Market Analysis — BTC ETH Altcoins 📈",
+    title: "LIVE Market Analysis — BTC ETH Altcoins",
     category: "Finance",
     thumbnail: "https://picsum.photos/seed/live4/640/360",
     viewers: 22100,
     avatarColor: "#f9a825",
     startedAgo: "3 hours ago",
-    badge: "✅",
+    badge: "verified",
   },
   {
     id: "live-5",
     channelName: "MusicBeatStudio",
     channelId: "ch-musicbeat",
-    title: "Producing a HIT Track Live — Lofi Hip Hop Beats 🎵",
+    title: "Producing a HIT Track Live — Lofi Hip Hop Beats",
     category: "Music",
     thumbnail: "https://picsum.photos/seed/live5/640/360",
     viewers: 9300,
@@ -104,7 +121,7 @@ const AI_LIVE_STREAMS: AILiveStream[] = [
     id: "live-6",
     channelName: "FitnessWithAlex",
     channelId: "ch-fitnessalex",
-    title: "45 Minute Full Body HIIT — Join Live Workout! 💪",
+    title: "45 Minute Full Body HIIT — Join Live Workout!",
     category: "Health & Fitness",
     thumbnail: "https://picsum.photos/seed/live6/640/360",
     viewers: 4200,
@@ -115,7 +132,7 @@ const AI_LIVE_STREAMS: AILiveStream[] = [
     id: "live-7",
     channelName: "ArtByMia",
     channelId: "ch-artmia",
-    title: "Digital Painting: Fantasy Landscape from Scratch 🎨",
+    title: "Digital Painting: Fantasy Landscape from Scratch",
     category: "Art & Design",
     thumbnail: "https://picsum.photos/seed/live7/640/360",
     viewers: 7600,
@@ -126,13 +143,13 @@ const AI_LIVE_STREAMS: AILiveStream[] = [
     id: "live-8",
     channelName: "SpaceNewsDaily",
     channelId: "ch-spacenews",
-    title: "🚀 LIVE: SpaceX Launch Watch Party + Q&A",
+    title: "LIVE: SpaceX Launch Watch Party + Q&A",
     category: "Science",
     thumbnail: "https://picsum.photos/seed/live8/640/360",
     viewers: 51000,
     avatarColor: "#1565c0",
     startedAgo: "5 minutes ago",
-    badge: "✅",
+    badge: "verified",
   },
 ];
 
@@ -146,13 +163,13 @@ const AI_CHAT_NAMES = [
   "NightOwlStream",
   "FastFingers",
   "SilentBob99",
-  "EmojiKing😎",
+  "EmojiKing",
   "LegendWatcher",
   "ProGamer2024",
   "CryptoKid",
   "BeatzMaker",
   "NatureFan",
-  "CoffeeAddict☕",
+  "CoffeeAddict",
   "GigaChad",
   "RetroPlayer",
   "SuperFan101",
@@ -169,27 +186,27 @@ const AI_CHAT_MESSAGES = [
   "W stream as always 👑",
   "Bro woke up and chose excellence",
   "THE GOAT IS LIVE",
-  "Hi from Brazil! 🇧🇷",
-  "Hi from Japan! 🇯🇵",
-  "Hi from UK! 🇬🇧",
+  "Hi from Brazil!",
+  "Hi from Japan!",
+  "Hi from UK!",
   "Any new subscribers today?",
   "This is my fav channel honestly",
   "algorithm brought me here, staying forever",
   "imagine not watching this rn",
-  "LETS GOOOOO 🚀🚀🚀",
+  "LETS GOOOOO",
   "just subbed, this is fire",
   "never miss a stream!",
   "how long have you been doing this?",
-  "quality content as always 💯",
+  "quality content as always",
   "I told my friends about you!",
   "when is the next stream?",
   "you deserve more subs fr fr",
   "love the energy today!",
   "this is better than Netflix lmao",
-  "been here since day 1 💪",
+  "been here since day 1",
   "can we get a 1000 subscriber raid??",
   "poggers moment",
-  "the chat is going crazy rn 😂",
+  "the chat is going crazy rn",
 ];
 
 const SUPER_CHAT_COLORS: Record<number, string> = {
@@ -381,8 +398,6 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
 
       // Auto-grow likes to ~60% of viewers (50-65% range)
       setLikes((prevLikes) => {
-        // We can't directly access liveViewers here, so we track likes relative to viewers
-        // Likes tick up independently, they'll converge to ~60% over time
         const subs2 = subscribersRef.current;
         let likeGrowth: number;
         if (subs2 >= 10_000_000)
@@ -528,7 +543,7 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
       {
         id: "sys-watch",
         author: "System",
-        text: `You joined ${stream.channelName}'s live stream! Say hi! 👋`,
+        text: `You joined ${stream.channelName}'s live stream! Say hi!`,
         timestamp: Date.now(),
         avatarColor: "#cc0000",
         isOwner: false,
@@ -583,7 +598,18 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: 48, marginBottom: 8 }}>🎉</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <TrophyIcon
+                  className="w-12 h-12"
+                  style={{ color: "#f9a825" }}
+                />
+              </div>
               <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
                 Stream Ended!
               </h2>
@@ -602,22 +628,22 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   {
                     label: "Peak Viewers",
                     value: formatViewers(streamSummary.viewers),
-                    icon: "👁️",
+                    Icon: ViewerIcon,
                   },
                   {
                     label: "Duration",
                     value: formatDuration(streamSummary.duration),
-                    icon: "⏱️",
+                    Icon: LiveIcon,
                   },
                   {
                     label: "Super Chats",
                     value: `$${streamSummary.superChats}`,
-                    icon: "💰",
+                    Icon: CoinIcon,
                   },
                   {
                     label: "New Subs",
                     value: `+${streamSummary.newSubs}`,
-                    icon: "👥",
+                    Icon: ChannelIcon,
                   },
                 ].map((item) => (
                   <div
@@ -628,7 +654,18 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                       padding: 16,
                     }}
                   >
-                    <div style={{ fontSize: 24 }}>{item.icon}</div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginBottom: 4,
+                      }}
+                    >
+                      <item.Icon
+                        className="w-6 h-6"
+                        style={{ color: "#aaa" }}
+                      />
+                    </div>
                     <div
                       style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}
                     >
@@ -807,9 +844,14 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                     fontSize: 15,
                     fontWeight: 700,
                     cursor: streamTitle.trim() ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
                   }}
                 >
-                  🔴 Start Streaming
+                  <LiveIcon className="w-4 h-4" />
+                  Start Streaming
                 </button>
               </div>
             </div>
@@ -827,8 +869,18 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
             }}
           >
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
-                🔴 Live
+              <h1
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  margin: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <LiveIcon className="w-6 h-6" style={{ color: "#cc0000" }} />
+                Live
               </h1>
               <p style={{ color: "#aaa", fontSize: 14, margin: "4px 0 0" }}>
                 Watch live streams or go live yourself
@@ -852,7 +904,8 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   gap: 8,
                 }}
               >
-                ● Go Live
+                <LiveIcon className="w-4 h-4" />
+                Go Live
               </button>
             )}
           </div>
@@ -908,10 +961,12 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 48,
                     }}
                   >
-                    {stream.badge || "📺"}
+                    <LiveIcon
+                      className="w-12 h-12"
+                      style={{ color: stream.avatarColor }}
+                    />
                   </div>
                   {/* LIVE badge */}
                   <div
@@ -942,9 +997,12 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                       padding: "3px 7px",
                       fontSize: 12,
                       fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    👁{" "}
+                    <ViewerIcon className="w-3 h-3" />
                     {formatViewers(
                       aiStreamViewers[stream.id] || stream.viewers,
                     )}{" "}
@@ -1007,7 +1065,6 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
 
   // ===================== WATCHING / STREAMING MODE =====================
   const isOwnerStream = mode === "streaming";
-  // const currentChannel = isOwnerStream ? state.channel : watchingStream;
   const displayTitle = isOwnerStream
     ? streamTitle
     : watchingStream?.title || "";
@@ -1125,8 +1182,18 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
               border: "1px solid #444",
             }}
           >
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-              💰 Super Chat
+            <h3
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                marginBottom: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <CoinIcon className="w-5 h-5" style={{ color: "#f9a825" }} />
+              Super Chat
             </h3>
             <p style={{ color: "#aaa", fontSize: 13, marginBottom: 20 }}>
               Support the stream with a highlighted message
@@ -1244,7 +1311,7 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                 minHeight: 280,
               }}
             >
-              <div style={{ fontSize: 64 }}>{isOwnerStream ? "📹" : "📺"}</div>
+              <LiveIcon className="w-16 h-16" style={{ color: "#cc0000" }} />
               <div style={{ fontSize: 18, color: "#aaa", fontWeight: 500 }}>
                 {isOwnerStream
                   ? "You are live!"
@@ -1283,9 +1350,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   borderRadius: 4,
                   padding: "5px 10px",
                   fontSize: 13,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                👁 <AnimatedNumber value={liveViewers} /> watching
+                <ViewerIcon className="w-3 h-3" />
+                <AnimatedNumber value={liveViewers} /> watching
               </div>
             </div>
 
@@ -1376,9 +1447,29 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                     fontSize: 14,
                     cursor: "pointer",
                     fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
                   }}
                 >
-                  👍 {likes.toLocaleString()}
+                  <ThumbUpIcon className="w-4 h-4" />
+                  {likes.toLocaleString()}
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    background: "#272727",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 20,
+                    padding: "8px 16px",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <ThumbDownIcon className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
@@ -1392,7 +1483,7 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                     cursor: "pointer",
                   }}
                 >
-                  👎
+                  Clip
                 </button>
                 <button
                   type="button"
@@ -1404,23 +1495,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                     padding: "8px 16px",
                     fontSize: 14,
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
                   }}
                 >
-                  ✂️ Clip
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    background: "#272727",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 20,
-                    padding: "8px 16px",
-                    fontSize: 14,
-                    cursor: "pointer",
-                  }}
-                >
-                  ⬆️ Share
+                  <ShareIcon className="w-4 h-4" />
+                  Share
                 </button>
                 {isOwnerStream && (
                   <button
@@ -1435,9 +1516,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                       fontSize: 14,
                       fontWeight: 700,
                       cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    ■ End Stream
+                    <CloseIcon className="w-4 h-4" />
+                    End Stream
                   </button>
                 )}
                 {!isOwnerStream && (
@@ -1512,7 +1597,16 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   gap: 8,
                 }}
               >
-                <span style={{ color: "#aaa", fontSize: 13 }}>
+                <span
+                  style={{
+                    color: "#aaa",
+                    fontSize: 13,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <ShieldIcon className="w-4 h-4" />
                   Subscriber only
                 </span>
                 <button
@@ -1632,7 +1726,18 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
               justifyContent: "space-between",
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: 15 }}>Live Chat</div>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 15,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <LiveChatIcon className="w-4 h-4" />
+              Live Chat
+            </div>
             {isSubOnly && (
               <div
                 style={{
@@ -1662,7 +1767,10 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                 alignItems: "flex-start",
               }}
             >
-              <span style={{ fontSize: 14 }}>📌</span>
+              <PinIcon
+                className="w-4 h-4"
+                style={{ color: "#3ea6ff", flexShrink: 0, marginTop: 2 }}
+              />
               <div style={{ flex: 1 }}>
                 <div
                   style={{ fontSize: 12, color: "#3ea6ff", fontWeight: 600 }}
@@ -1681,10 +1789,11 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   border: "none",
                   color: "#aaa",
                   cursor: "pointer",
-                  fontSize: 16,
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                ×
+                <CloseIcon className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -1728,7 +1837,11 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                     }}
                   >
                     <span>{msg.author}</span>
-                    <span>💰 ${msg.superChatAmount}</span>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 4 }}
+                    >
+                      <CoinIcon className="w-3 h-3" />${msg.superChatAmount}
+                    </span>
                   </div>
                 )}
                 <div
@@ -1770,23 +1883,31 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                     {msg.isOwner && (
                       <span
                         style={{
-                          fontSize: 10,
-                          color: "#f9a825",
                           marginLeft: 4,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          verticalAlign: "middle",
                         }}
                       >
-                        👑
+                        <TrophyIcon
+                          className="w-3 h-3"
+                          style={{ color: "#f9a825" }}
+                        />
                       </span>
                     )}
                     {msg.isModerator && (
                       <span
                         style={{
-                          fontSize: 10,
-                          color: "#3ea6ff",
                           marginLeft: 4,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          verticalAlign: "middle",
                         }}
                       >
-                        🔧
+                        <ShieldIcon
+                          className="w-3 h-3"
+                          style={{ color: "#3ea6ff" }}
+                        />
                       </span>
                     )}
                     {isOwnerStream && (
@@ -1801,10 +1922,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                           fontSize: 11,
                           marginLeft: 4,
                           padding: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          verticalAlign: "middle",
                         }}
                         title="Pin message"
                       >
-                        📌
+                        <PinIcon className="w-3 h-3" />
                       </button>
                     )}
                     <span
@@ -1900,13 +2024,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   width: 36,
                   height: 36,
                   cursor: "pointer",
-                  fontSize: 18,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
+                aria-label="Open emoji picker"
               >
-                😊
+                <EmojiIcon className="w-5 h-5" style={{ color: "#fff" }} />
               </button>
               <button
                 type="button"
@@ -1919,13 +2043,13 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                   height: 36,
                   cursor: chatInput.trim() ? "pointer" : "default",
                   color: "#fff",
-                  fontSize: 16,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
+                aria-label="Send message"
               >
-                ➤
+                <SendIcon className="w-4 h-4" />
               </button>
             </div>
             <button
@@ -1947,7 +2071,8 @@ export default function LivePage({ navigate: _navigate }: LivePageProps) {
                 gap: 6,
               }}
             >
-              💰 Super Chat
+              <SuperChatIcon className="w-4 h-4" />
+              Super Chat
             </button>
           </div>
         </div>

@@ -1,5 +1,12 @@
 import { useState } from "react";
 import type { Page } from "../App";
+import {
+  AlbumIcon,
+  CloseIcon,
+  PlayIcon,
+  PlusIcon,
+  TrashIcon,
+} from "../components/Icons";
 import { mockVideos } from "../data/mockVideos";
 import { useGame } from "../store/gameStore";
 
@@ -61,9 +68,13 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
             fontWeight: "bold",
             color: "#333",
             margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          &#x1F4DA; Library &amp; Playlists
+          <AlbumIcon className="w-4 h-4" style={{ color: "#cc0000" }} />
+          Library &amp; Playlists
         </h2>
         <button
           type="button"
@@ -77,10 +88,14 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
             fontSize: "12px",
             color: "#fff",
             fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
           }}
           data-ocid="library.primary_button"
         >
-          + New Playlist
+          <PlusIcon className="w-3 h-3" />
+          New Playlist
         </button>
       </div>
 
@@ -145,7 +160,15 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
           }}
           data-ocid="library.empty_state"
         >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>&#x1F4DA;</div>
+          <div
+            style={{
+              marginBottom: "8px",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <AlbumIcon className="w-8 h-8" style={{ color: "#ccc" }} />
+          </div>
           <div style={{ fontSize: "13px" }}>No playlists yet. Create one!</div>
         </div>
       ) : (
@@ -198,7 +221,10 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
                         }}
                       />
                     ) : (
-                      <span style={{ fontSize: "20px" }}>&#x1F3B5;</span>
+                      <AlbumIcon
+                        className="w-5 h-5"
+                        style={{ color: "#fff" }}
+                      />
                     )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -227,10 +253,14 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
                           backgroundColor: "#cc0000",
                           color: "#fff",
                           border: "1px solid #aa0000",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "3px",
                         }}
                         data-ocid="library.primary_button"
                       >
-                        &#x25B6; Watch All
+                        <PlayIcon className="w-3 h-3" />
+                        Watch All
                       </button>
                     )}
                     <button
@@ -239,15 +269,21 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
                       style={btnStyle}
                       data-ocid="library.toggle"
                     >
-                      {isExpanded ? "&#x25B2; Hide" : "&#x25BC; Show"}
+                      {isExpanded ? "▲ Hide" : "▼ Show"}
                     </button>
                     <button
                       type="button"
                       onClick={() => deletePlaylist(pl.id)}
-                      style={{ ...btnStyle, color: "#cc0000" }}
+                      style={{
+                        ...btnStyle,
+                        color: "#cc0000",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                       data-ocid="library.delete_button"
                     >
-                      &#x1F5D1;
+                      <TrashIcon className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -315,11 +351,13 @@ export default function LibraryPage({ navigate }: LibraryPageProps) {
                                 border: "none",
                                 cursor: "pointer",
                                 color: "#aaa",
-                                fontSize: "14px",
+                                padding: "4px",
+                                display: "flex",
+                                alignItems: "center",
                               }}
                               data-ocid="library.delete_button"
                             >
-                              &#x00D7;
+                              <CloseIcon className="w-3 h-3" />
                             </button>
                           </div>
                         );

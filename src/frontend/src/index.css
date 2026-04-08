@@ -85,3 +85,33 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.6 0 0);
 }
+
+/* Mobile: hide scrollbar for horizontal scroll rows */
+@media (max-width: 767px) {
+  /* Hide scrollbar on chip rows */
+  .scroll-x-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent any horizontal overflow blowout */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Studio tab bar — allow horizontal scrolling on mobile */
+  .studio-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .studio-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Make sure all pages don't clip content */
+  main {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

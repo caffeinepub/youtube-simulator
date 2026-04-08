@@ -2,6 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { Page } from "../App";
 import AnimatedNumber from "../components/AnimatedNumber";
+import {
+  BellFilledIcon,
+  CloseIcon,
+  HeartFilledIcon,
+  PinIcon,
+  QueueIcon,
+  SaveIcon,
+  ShareIcon,
+  ThumbDownIcon,
+  ThumbUpIcon,
+} from "../components/Icons";
 import { formatViews, mockVideos } from "../data/mockVideos";
 import {
   useAddComment,
@@ -299,11 +310,11 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
       {
         id: `st-${Date.now()}`,
         author: "Creator",
-        text: `❤️ Thank you so much for the $${amount} Super Thanks! You're amazing! 🙏`,
+        text: `Thank you so much for the $${amount} Super Thanks! You're amazing!`,
         likes: 0,
       },
     ]);
-    toast.success(`Super Thanks $${amount} sent! ❤️`);
+    toast.success(`Super Thanks $${amount} sent!`);
     // Auto-dismiss after 5 seconds
     setTimeout(() => setSuperThanksActive(null), 5000);
   };
@@ -372,6 +383,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
 
   const pinnedCommentId = game.pinnedComments[videoId];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let commentsRaw: any[] = isPlayerVideo
     ? (playerVideo?.comments ?? [])
     : isMock
@@ -490,9 +502,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 fontSize: "11px",
                 padding: "3px 8px",
                 borderRadius: "2px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
             >
-              &#x1F4CB; Up next: {game.videoQueue.length} queued
+              <QueueIcon size={12} />
+              Up next: {game.videoQueue.length} queued
             </div>
           )}
 
@@ -521,15 +537,22 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                     borderRadius: "2px",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
                   }}
                 >
-                  {card === "Subscribe button"
-                    ? "🔔 SUBSCRIBE"
-                    : card === "Another video"
-                      ? "▶ Video"
-                      : card === "Website link"
-                        ? "🌐 Website"
-                        : "📋 Playlist"}
+                  {card === "Subscribe button" ? (
+                    <>
+                      <BellFilledIcon size={10} /> SUBSCRIBE
+                    </>
+                  ) : card === "Another video" ? (
+                    <>&#x25B6; Video</>
+                  ) : card === "Website link" ? (
+                    <>&#x1F310; Website</>
+                  ) : (
+                    <>&#x1F4CB; Playlist</>
+                  )}
                 </div>
               ))}
             </div>
@@ -550,7 +573,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 gap: "10px",
               }}
             >
-              <span style={{ fontSize: "20px" }}>🔞</span>
+              <span style={{ fontSize: "20px" }}>18+</span>
               <div>
                 <div
                   style={{
@@ -587,7 +610,15 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
               }}
             >
-              <div style={{ fontSize: "24px", marginBottom: "4px" }}>❤️</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: "4px",
+                }}
+              >
+                <HeartFilledIcon size={24} />
+              </div>
               <div style={{ fontSize: "16px", fontWeight: "bold" }}>
                 Super Thanks
               </div>
@@ -710,7 +741,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 }}
                 data-ocid="watch.button"
               >
-                &#x1F44D; {displayLikes.toLocaleString()}
+                <ThumbUpIcon size={13} /> {displayLikes.toLocaleString()}
               </button>
               <button
                 type="button"
@@ -730,7 +761,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 }}
                 data-ocid="watch.button"
               >
-                &#x1F44E; {displayDislikes.toLocaleString()}
+                <ThumbDownIcon size={13} /> {displayDislikes.toLocaleString()}
               </button>
               <button
                 type="button"
@@ -742,10 +773,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                   cursor: "pointer",
                   fontSize: "12px",
                   whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
                 }}
                 data-ocid="watch.button"
               >
-                Share
+                <ShareIcon size={13} /> Share
               </button>
               <button
                 type="button"
@@ -762,10 +796,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                   cursor: "pointer",
                   fontSize: "12px",
                   whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
                 }}
                 data-ocid="watch.secondary_button"
               >
-                &#x1F4CB;{" "}
+                <QueueIcon size={13} />{" "}
                 {game.videoQueue.includes(videoId) ? "Queued" : "Add to Queue"}
               </button>
               <button
@@ -779,10 +816,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                   cursor: "pointer",
                   fontSize: "12px",
                   whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
                 }}
                 data-ocid="watch.secondary_button"
               >
-                &#x1F4BE; Save
+                <SaveIcon size={13} /> Save
               </button>
 
               {/* Feature 11: CC button */}
@@ -876,10 +916,13 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                     color: "#fff",
                     whiteSpace: "nowrap",
                     fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
                   }}
                   data-ocid="watch.button"
                 >
-                  ❤ Super Thanks
+                  <HeartFilledIcon size={13} /> Super Thanks
                 </button>
               )}
             </div>
@@ -914,8 +957,17 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 marginTop: "2px",
               }}
             >
-              <span>&#x1F44D; {Math.round(likePercent)}% liked</span>
-              <span>&#x1F44E; {Math.round(100 - likePercent)}% disliked</span>
+              <span
+                style={{ display: "flex", alignItems: "center", gap: "3px" }}
+              >
+                <ThumbUpIcon size={10} /> {Math.round(likePercent)}% liked
+              </span>
+              <span
+                style={{ display: "flex", alignItems: "center", gap: "3px" }}
+              >
+                <ThumbDownIcon size={10} /> {Math.round(100 - likePercent)}%
+                disliked
+              </span>
             </div>
           </div>
         </div>
@@ -1020,7 +1072,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                 color: "#333",
               }}
             >
-              &#x1F4D1; Chapters
+              Chapters
             </div>
             <div style={{ padding: "4px 0" }}>
               {chapters.map((ch) => (
@@ -1160,9 +1212,12 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                               fontSize: "10px",
                               color: "#e6a817",
                               fontWeight: "bold",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "2px",
                             }}
                           >
-                            &#x1F4CC; Pinned
+                            <PinIcon size={10} /> Pinned
                           </span>
                         )}
                         <span
@@ -1218,7 +1273,7 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                             gap: "3px",
                           }}
                         >
-                          &#x1F44D; {Number(c.likes)}
+                          <ThumbUpIcon size={11} /> {Number(c.likes)}
                         </button>
                         {isPlayerVideo && (
                           <>
@@ -1257,9 +1312,12 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                                 fontSize: "11px",
                                 color: isPinned ? "#e6a817" : "#888",
                                 padding: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "3px",
                               }}
                             >
-                              &#x1F4CC; {isPinned ? "Unpin" : "Pin"}
+                              <PinIcon size={11} /> {isPinned ? "Unpin" : "Pin"}
                             </button>
                           </>
                         )}
@@ -1570,9 +1628,16 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
               }}
             >
               <span
-                style={{ color: "#fff", fontWeight: "bold", fontSize: "14px" }}
+                style={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
               >
-                &#x1F4BE; Save to Playlist
+                <SaveIcon size={14} /> Save to Playlist
               </span>
               <button
                 type="button"
@@ -1582,11 +1647,14 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                   border: "none",
                   color: "#fff",
                   cursor: "pointer",
-                  fontSize: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "2px",
                 }}
                 data-ocid="watch.close_button"
               >
-                &#x00D7;
+                <CloseIcon size={16} />
               </button>
             </div>
             <div
@@ -1728,9 +1796,16 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
               }}
             >
               <span
-                style={{ color: "#fff", fontWeight: "bold", fontSize: "13px" }}
+                style={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
               >
-                ❤ Super Thanks
+                <HeartFilledIcon size={14} /> Super Thanks
               </span>
               <button
                 type="button"
@@ -1740,11 +1815,14 @@ export default function WatchPage({ navigate, videoId }: WatchPageProps) {
                   border: "none",
                   color: "#fff",
                   cursor: "pointer",
-                  fontSize: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "2px",
                 }}
                 data-ocid="watch.close_button"
               >
-                ✕
+                <CloseIcon size={14} />
               </button>
             </div>
             <div style={{ padding: "16px" }}>

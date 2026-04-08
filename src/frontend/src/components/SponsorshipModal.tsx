@@ -1,4 +1,5 @@
 import { useGame } from "../store/gameStore";
+import { BusinessIcon, CheckCircleIcon, CoinIcon } from "./Icons";
 
 export default function SponsorshipModal() {
   const { pendingSponsorship, acceptSponsorship, declineSponsorship } =
@@ -47,9 +48,17 @@ export default function SponsorshipModal() {
         >
           <div>
             <div
-              style={{ color: "#ffd700", fontWeight: "bold", fontSize: "15px" }}
+              style={{
+                color: "#ffd700",
+                fontWeight: "bold",
+                fontSize: "15px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
             >
-              💼 Sponsorship Offer!
+              <BusinessIcon className="w-4 h-4" />
+              Sponsorship Offer!
             </div>
             <div style={{ color: "#aaa", fontSize: "11px", marginTop: "2px" }}>
               A brand wants to work with you
@@ -88,11 +97,10 @@ export default function SponsorshipModal() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "22px",
                 flexShrink: 0,
               }}
             >
-              🏢
+              <BusinessIcon className="w-6 h-6" style={{ color: "#fff" }} />
             </div>
             <div>
               <div
@@ -142,10 +150,14 @@ export default function SponsorshipModal() {
               marginBottom: "20px",
               fontSize: "12px",
               color: "#555",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            💰 You'll earn <strong>{formatted}</strong> for accepting this deal.
-            Earnings are added to your Studio dashboard.
+            <CoinIcon className="w-4 h-4" style={{ color: "#f9a825" }} />
+            You&apos;ll earn <strong>{formatted}</strong> for accepting this
+            deal. Earnings are added to your Studio dashboard.
           </div>
 
           <div style={{ display: "flex", gap: "10px" }}>
@@ -163,9 +175,14 @@ export default function SponsorshipModal() {
                 fontSize: "13px",
                 color: "#fff",
                 fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
               }}
             >
-              ✅ Accept Deal
+              <CheckCircleIcon className="w-4 h-4" />
+              Accept Deal
             </button>
             <button
               type="button"

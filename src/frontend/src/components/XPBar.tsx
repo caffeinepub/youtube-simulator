@@ -1,4 +1,5 @@
 import { useGame } from "../store/gameStore";
+import { CoinIcon, TrophyIcon } from "./Icons";
 
 const RANKS = [
   {
@@ -60,8 +61,9 @@ export function XPBar() {
             {xp.toLocaleString()} XP
           </span>
         </div>
-        <span className="text-sm font-semibold text-yellow-400">
-          🪙 {coins.toLocaleString()}
+        <span className="text-sm font-semibold text-yellow-400 flex items-center gap-1">
+          <CoinIcon className="w-4 h-4" />
+          {coins.toLocaleString()}
         </span>
       </div>
 
@@ -81,8 +83,9 @@ export function XPBar() {
       ) : (
         <>
           <div className="w-full h-3 bg-yellow-500 rounded-full" />
-          <p className="text-xs text-yellow-400 font-semibold">
-            Maximum rank achieved! 🏆
+          <p className="text-xs text-yellow-400 font-semibold flex items-center gap-1">
+            <TrophyIcon className="w-3 h-3" />
+            Maximum rank achieved!
           </p>
         </>
       )}

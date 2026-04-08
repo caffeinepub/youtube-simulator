@@ -14,29 +14,39 @@ import { ConfettiEffect } from "./ConfettiEffect";
 import { DailyLoginModal } from "./DailyLoginModal";
 import {
   BellIcon,
+  BellOffIcon,
   BusinessIcon,
+  CameraIcon,
   CloseIcon,
   EditIcon,
   ExploreIcon,
   EyeIcon,
   FanFestIcon,
   FireIcon,
+  GamepadIcon,
   HistoryIcon,
   HomeIcon,
   LibraryIcon,
+  LightningIcon,
   LiveIcon,
   MenuIcon,
+  NewGameIcon,
   PersonIcon,
   QueueIcon,
   RefreshIcon,
+  RocketIcon,
   SearchIcon,
   SettingsIcon,
   ShortsIcon,
+  StarIcon,
   StudioIcon,
   SubscriptionsIcon,
+  TargetIcon,
   TrendingIcon,
+  TrophyIcon,
   UploadIcon,
   VideoIcon,
+  WarningIcon,
 } from "./Icons";
 
 interface LayoutProps {
@@ -50,13 +60,20 @@ interface LayoutProps {
 
 const godBoosts = [
   {
-    label: "\uD83D\uDE80 Viral Boost",
+    label: "Viral Boost",
+    icon: RocketIcon,
     subs: 10000,
     desc: "Jumpstart your channel growth!",
   },
-  { label: "\u2B50 YouTube Famous", subs: 100000, desc: "You're going viral!" },
   {
-    label: "\uD83C\uDFC6 YouTube Star",
+    label: "YouTube Famous",
+    icon: StarIcon,
+    subs: 100000,
+    desc: "You're going viral!",
+  },
+  {
+    label: "YouTube Star",
+    icon: TrophyIcon,
     subs: 1000000,
     desc: "One million strong!",
   },
@@ -69,6 +86,23 @@ function formatRelativeTime(ts: number): string {
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
   return `${Math.floor(diff / 86400000)}d ago`;
 }
+
+// Bottom navigation items for mobile
+const BOTTOM_NAV_ITEMS: Array<{
+  label: string;
+  page: Page;
+  icon: React.FC<{ size?: number; style?: React.CSSProperties }>;
+}> = [
+  { label: "Home", page: { name: "home" }, icon: HomeIcon },
+  { label: "Shorts", page: { name: "shorts" }, icon: ShortsIcon },
+  { label: "Upload", page: { name: "upload" }, icon: UploadIcon },
+  {
+    label: "Subscriptions",
+    page: { name: "subscriptions" },
+    icon: SubscriptionsIcon,
+  },
+  { label: "Library", page: { name: "library" }, icon: LibraryIcon },
+];
 
 export default function Layout({
   children,
@@ -138,6 +172,18 @@ export default function Layout({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile, sidebarOpen]);
 
   // Close notifications on outside click
   useEffect(() => {
@@ -265,6 +311,9 @@ export default function Layout({
     "Tech",
   ];
 
+  // Bottom nav height constant
+  const BOTTOM_NAV_HEIGHT = 56;
+
   return (
     <>
       <div
@@ -312,9 +361,13 @@ export default function Layout({
                     color: "#fff",
                     fontWeight: "bold",
                     fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  \uD83C\uDFAE Welcome to YouTube Simulator!
+                  <GamepadIcon size={16} />
+                  Welcome to YouTube Simulator!
                 </span>
                 <button
                   type="button"
@@ -324,10 +377,13 @@ export default function Layout({
                     border: "none",
                     color: "#fff",
                     cursor: "pointer",
-                    fontSize: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "2px",
                   }}
+                  aria-label="Close"
                 >
-                  \u00D7
+                  <CloseIcon size={18} />
                 </button>
               </div>
               <div style={{ padding: "20px" }}>
@@ -339,7 +395,7 @@ export default function Layout({
                     lineHeight: "1.6",
                   }}
                 >
-                  This is a game \u2014 no real Google account needed!
+                  This is a game &mdash; no real Google account needed!
                   <br />
                   Create your channel to start uploading videos and tracking
                   your stats.
@@ -426,9 +482,13 @@ export default function Layout({
                     color: "#ffd700",
                     fontWeight: "bold",
                     fontSize: "15px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  \u26A1 GOD MODE ACTIVATED
+                  <LightningIcon size={18} style={{ color: "#ffd700" }} />
+                  GOD MODE ACTIVATED
                 </span>
                 {!boostAnimating && (
                   <button
@@ -439,10 +499,13 @@ export default function Layout({
                       border: "none",
                       color: "#fff",
                       cursor: "pointer",
-                      fontSize: "18px",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "2px",
                     }}
+                    aria-label="Close"
                   >
-                    \u00D7
+                    <CloseIcon size={18} />
                   </button>
                 )}
               </div>
@@ -454,9 +517,14 @@ export default function Layout({
                         fontSize: "14px",
                         color: "#555",
                         marginBottom: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
                       }}
                     >
-                      \uD83D\uDE80 {boostLabel} activating...
+                      <RocketIcon size={16} style={{ color: "#cc0000" }} />
+                      {boostLabel} activating...
                     </div>
                     <div
                       style={{
@@ -468,7 +536,7 @@ export default function Layout({
                         letterSpacing: "-1px",
                       }}
                     >
-                      + 
+                      +
                       <AnimatedNumber value={boostCurrent} speed="fast" />
                     </div>
                     <div
@@ -537,8 +605,15 @@ export default function Layout({
                                 fontWeight: "bold",
                                 fontSize: "13px",
                                 color: "#333",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
                               }}
                             >
+                              <boost.icon
+                                size={16}
+                                style={{ color: "#cc0000" }}
+                              />
                               {boost.label}
                             </div>
                             <div style={{ fontSize: "12px", color: "#888" }}>
@@ -583,7 +658,7 @@ export default function Layout({
           </div>
         )}
 
-        {/* Sidebar overlay (mobile) */}
+        {/* Sidebar overlay (mobile) — full-screen dark backdrop */}
         {isMobile && sidebarOpen && (
           <button
             type="button"
@@ -591,11 +666,13 @@ export default function Layout({
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(0,0,0,0.4)",
+              backgroundColor: "rgba(0,0,0,0.55)",
               zIndex: 200,
               border: "none",
               cursor: "default",
               padding: 0,
+              width: "100vw",
+              height: "100vh",
             }}
             onClick={() => setSidebarOpen(false)}
           />
@@ -614,6 +691,8 @@ export default function Layout({
             top: 0,
             zIndex: 150,
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            height: "56px",
+            boxSizing: "border-box",
           }}
         >
           {/* Hamburger (mobile) */}
@@ -625,11 +704,14 @@ export default function Layout({
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                padding: "4px",
+                padding: "8px",
                 display: "flex",
                 alignItems: "center",
                 color: "#333",
                 flexShrink: 0,
+                minWidth: "44px",
+                minHeight: "44px",
+                justifyContent: "center",
               }}
               data-ocid="nav.toggle"
             >
@@ -825,8 +907,8 @@ export default function Layout({
               marginLeft: "auto",
             }}
           >
-            {/* Instagram Switcher */}
-            {onSwitchToInstagram && (
+            {/* Instagram Switcher — DESKTOP ONLY (hidden on mobile) */}
+            {onSwitchToInstagram && !isMobile && (
               <button
                 type="button"
                 onClick={onSwitchToInstagram}
@@ -847,7 +929,7 @@ export default function Layout({
                   flexShrink: 0,
                 }}
               >
-                <span style={{ fontSize: "14px" }}>📸</span>
+                <CameraIcon size={14} style={{ color: "#fff" }} />
                 <span>Instagram</span>
               </button>
             )}
@@ -870,10 +952,13 @@ export default function Layout({
                   display: "flex",
                   alignItems: "center",
                   lineHeight: 1,
+                  minWidth: isMobile ? "44px" : "auto",
+                  minHeight: isMobile ? "44px" : "auto",
+                  justifyContent: "center",
                 }}
                 data-ocid="notifications.button"
               >
-                \uD83D\uDD14
+                <BellIcon size={18} style={{ color: "#555" }} />
                 {unreadCount > 0 && (
                   <span
                     style={{
@@ -906,7 +991,8 @@ export default function Layout({
                     backgroundColor: "#fff",
                     border: "1px solid #e0e0e0",
                     borderRadius: "4px",
-                    width: "300px",
+                    width: isMobile ? "calc(100vw - 24px)" : "300px",
+                    maxWidth: "300px",
                     maxHeight: "360px",
                     overflowY: "auto",
                     boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
@@ -971,293 +1057,310 @@ export default function Layout({
               )}
             </div>
 
-            {/* Notification Preference */}
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                title="Notification settings"
-                onClick={() => setShowNotifPref((v) => !v)}
-                style={{
-                  background: "none",
-                  border: "1px solid #c0c0c0",
-                  borderRadius: "2px",
-                  cursor: "pointer",
-                  padding: "4px 6px",
-                  fontSize: "12px",
-                  color: "#555",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                data-ocid="notifications.button"
-              >
-                <SettingsIcon size={14} />
-              </button>
-              {showNotifPref && (
-                <div
+            {/* Notification Preference — desktop only */}
+            {!isMobile && (
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  title="Notification settings"
+                  onClick={() => setShowNotifPref((v) => !v)}
                   style={{
-                    position: "absolute",
-                    top: "calc(100% + 4px)",
-                    right: 0,
-                    backgroundColor: "#fff",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "4px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    zIndex: 500,
-                    minWidth: "220px",
-                    padding: "8px 0",
+                    background: "none",
+                    border: "1px solid #c0c0c0",
+                    borderRadius: "2px",
+                    cursor: "pointer",
+                    padding: "4px 6px",
+                    fontSize: "12px",
+                    color: "#555",
+                    display: "flex",
+                    alignItems: "center",
                   }}
-                  data-ocid="notifications.popover"
+                  data-ocid="notifications.button"
                 >
+                  <SettingsIcon size={14} />
+                </button>
+                {showNotifPref && (
                   <div
                     style={{
-                      padding: "6px 14px",
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                      color: "#888",
-                      borderBottom: "1px solid #f0f0f0",
-                      marginBottom: "4px",
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      right: 0,
+                      backgroundColor: "#fff",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "4px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      zIndex: 500,
+                      minWidth: "220px",
+                      padding: "8px 0",
+                    }}
+                    data-ocid="notifications.popover"
+                  >
+                    <div
+                      style={{
+                        padding: "6px 14px",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        color: "#888",
+                        borderBottom: "1px solid #f0f0f0",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Notification Settings
+                    </div>
+                    {(
+                      [
+                        {
+                          value: "all",
+                          label: "All notifications",
+                          Icon: BellIcon,
+                        },
+                        {
+                          value: "personalized",
+                          label: "Milestones & revenue only",
+                          Icon: TargetIcon,
+                        },
+                        { value: "none", label: "None", Icon: BellOffIcon },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setNotificationPreference(opt.value);
+                          setShowNotifPref(false);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          width: "100%",
+                          textAlign: "left",
+                          padding: "7px 14px",
+                          border: "none",
+                          backgroundColor:
+                            notificationPreference === opt.value
+                              ? "#fff5f5"
+                              : "transparent",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          color:
+                            notificationPreference === opt.value
+                              ? "#cc0000"
+                              : "#333",
+                          fontWeight:
+                            notificationPreference === opt.value
+                              ? "bold"
+                              : "normal",
+                        }}
+                        data-ocid="notifications.button"
+                      >
+                        <opt.Icon size={14} />
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Queue button — desktop only */}
+            {!isMobile && (
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowQueue((v) => !v)}
+                  style={{
+                    padding: "5px 10px",
+                    backgroundColor: showQueue ? "#e8f5e9" : "#f0f0f0",
+                    border: `1px solid ${showQueue ? "#4caf50" : "#c0c0c0"}`,
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    borderRadius: "2px",
+                    color: "#333",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                  data-ocid="nav.toggle"
+                >
+                  <QueueIcon size={16} />
+                  {videoQueue.length > 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "-4px",
+                        right: "-4px",
+                        backgroundColor: "#1565c0",
+                        color: "#fff",
+                        borderRadius: "50%",
+                        width: "14px",
+                        height: "14px",
+                        fontSize: "9px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {videoQueue.length}
+                    </span>
+                  )}
+                </button>
+                {showQueue && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      right: 0,
+                      backgroundColor: "#fff",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "4px",
+                      width: "280px",
+                      maxHeight: "360px",
+                      overflowY: "auto",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                      zIndex: 500,
                     }}
                   >
-                    Notification Settings
-                  </div>
-                  {(
-                    [
-                      { value: "all", label: "🔔 All notifications" },
-                      {
-                        value: "personalized",
-                        label: "🎯 Milestones & revenue only",
-                      },
-                      { value: "none", label: "🔕 None" },
-                    ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        setNotificationPreference(opt.value);
-                        setShowNotifPref(false);
-                      }}
+                    <div
                       style={{
-                        display: "block",
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "7px 14px",
-                        border: "none",
-                        backgroundColor:
-                          notificationPreference === opt.value
-                            ? "#fff5f5"
-                            : "transparent",
-                        cursor: "pointer",
+                        padding: "8px 12px",
+                        borderBottom: "1px solid #f0f0f0",
+                        fontWeight: "bold",
                         fontSize: "12px",
-                        color:
-                          notificationPreference === opt.value
-                            ? "#cc0000"
-                            : "#333",
-                        fontWeight:
-                          notificationPreference === opt.value
-                            ? "bold"
-                            : "normal",
+                        color: "#333",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
-                      data-ocid="notifications.button"
                     >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                      <span>Queue ({videoQueue.length})</span>
+                      {videoQueue.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => clearQueue()}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "11px",
+                            color: "#cc0000",
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
+                    {videoQueue.length === 0 ? (
+                      <div
+                        style={{
+                          padding: "16px",
+                          textAlign: "center",
+                          fontSize: "12px",
+                          color: "#888",
+                        }}
+                      >
+                        Queue is empty
+                      </div>
+                    ) : (
+                      videoQueue.map((vid, i) => {
+                        const mock = mockVideos.find((v) => v.id === vid);
+                        const player = playerVideos.find((v) => v.id === vid);
+                        const title = mock?.title ?? player?.title ?? vid;
+                        const thumb =
+                          mock?.thumbnail ?? player?.thumbnailUrl ?? "";
+                        return (
+                          <div
+                            key={vid}
+                            style={{
+                              display: "flex",
+                              gap: "8px",
+                              alignItems: "center",
+                              padding: "6px 10px",
+                              borderBottom: "1px solid #f0f0f0",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: "10px",
+                                color: "#aaa",
+                                width: "12px",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {i + 1}
+                            </span>
+                            {thumb && (
+                              <img
+                                src={thumb}
+                                alt=""
+                                style={{
+                                  width: "50px",
+                                  height: "28px",
+                                  objectFit: "cover",
+                                  borderRadius: "2px",
+                                  flexShrink: 0,
+                                }}
+                              />
+                            )}
+                            <span
+                              style={{
+                                flex: 1,
+                                fontSize: "11px",
+                                color: "#333",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {title}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeFromQueue(vid)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#aaa",
+                                display: "flex",
+                                alignItems: "center",
+                                flexShrink: 0,
+                                padding: "2px",
+                              }}
+                              aria-label="Remove from queue"
+                            >
+                              <CloseIcon size={14} />
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Queue button */}
-            <div style={{ position: "relative" }}>
+            {/* Upload — desktop only (mobile uses bottom nav) */}
+            {!isMobile && (
               <button
                 type="button"
-                onClick={() => setShowQueue((v) => !v)}
+                onClick={handleUploadClick}
                 style={{
                   padding: "5px 10px",
-                  backgroundColor: showQueue ? "#e8f5e9" : "#f0f0f0",
-                  border: `1px solid ${showQueue ? "#4caf50" : "#c0c0c0"}`,
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #c0c0c0",
                   cursor: "pointer",
                   fontSize: "12px",
                   borderRadius: "2px",
                   color: "#333",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
                 }}
-                data-ocid="nav.toggle"
+                data-ocid="nav.upload_button"
               >
-                <QueueIcon size={16} />
-                {videoQueue.length > 0 && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "-4px",
-                      right: "-4px",
-                      backgroundColor: "#1565c0",
-                      color: "#fff",
-                      borderRadius: "50%",
-                      width: "14px",
-                      height: "14px",
-                      fontSize: "9px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {videoQueue.length}
-                  </span>
-                )}
+                Upload
               </button>
-              {showQueue && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 6px)",
-                    right: 0,
-                    backgroundColor: "#fff",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "4px",
-                    width: "280px",
-                    maxHeight: "360px",
-                    overflowY: "auto",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-                    zIndex: 500,
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "8px 12px",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontWeight: "bold",
-                      fontSize: "12px",
-                      color: "#333",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>Queue ({videoQueue.length})</span>
-                    {videoQueue.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => clearQueue()}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "11px",
-                          color: "#cc0000",
-                        }}
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                  {videoQueue.length === 0 ? (
-                    <div
-                      style={{
-                        padding: "16px",
-                        textAlign: "center",
-                        fontSize: "12px",
-                        color: "#888",
-                      }}
-                    >
-                      Queue is empty
-                    </div>
-                  ) : (
-                    videoQueue.map((vid, i) => {
-                      const mock = mockVideos.find((v) => v.id === vid);
-                      const player = playerVideos.find((v) => v.id === vid);
-                      const title = mock?.title ?? player?.title ?? vid;
-                      const thumb =
-                        mock?.thumbnail ?? player?.thumbnailUrl ?? "";
-                      return (
-                        <div
-                          key={vid}
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            alignItems: "center",
-                            padding: "6px 10px",
-                            borderBottom: "1px solid #f0f0f0",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: "10px",
-                              color: "#aaa",
-                              width: "12px",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {i + 1}
-                          </span>
-                          {thumb && (
-                            <img
-                              src={thumb}
-                              alt=""
-                              style={{
-                                width: "50px",
-                                height: "28px",
-                                objectFit: "cover",
-                                borderRadius: "2px",
-                                flexShrink: 0,
-                              }}
-                            />
-                          )}
-                          <span
-                            style={{
-                              flex: 1,
-                              fontSize: "11px",
-                              color: "#333",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {title}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeFromQueue(vid)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              color: "#aaa",
-                              fontSize: "14px",
-                              flexShrink: 0,
-                            }}
-                          >
-                            &#x00D7;
-                          </button>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Upload */}
-            <button
-              type="button"
-              onClick={handleUploadClick}
-              style={{
-                padding: "5px 10px",
-                backgroundColor: "#f0f0f0",
-                border: "1px solid #c0c0c0",
-                cursor: "pointer",
-                fontSize: "12px",
-                borderRadius: "2px",
-                color: "#333",
-              }}
-              data-ocid="nav.upload_button"
-            >
-              {isMobile ? "\u2191" : "Upload"}
-            </button>
+            )}
 
             {/* Channel / Sign In */}
             {channel ? (
@@ -1276,6 +1379,9 @@ export default function Layout({
                   borderRadius: "2px",
                   color: "#fff",
                   fontWeight: "bold",
+                  minWidth: isMobile ? "44px" : "auto",
+                  minHeight: isMobile ? "44px" : "auto",
+                  justifyContent: "center",
                 }}
                 data-ocid="nav.link"
               >
@@ -1323,20 +1429,22 @@ export default function Layout({
                   borderRadius: "2px",
                   color: "#cc0000",
                   fontWeight: "bold",
+                  minWidth: isMobile ? "44px" : "auto",
+                  minHeight: isMobile ? "44px" : "auto",
                 }}
                 data-ocid="nav.button"
               >
-                {isMobile ? "\uD83D\uDC64" : "Sign In"}
+                {isMobile ? <PersonIcon size={18} /> : "Sign In"}
               </button>
             )}
           </div>
         </header>
 
-        <div style={{ display: "flex", minHeight: "calc(100vh - 49px)" }}>
+        <div style={{ display: "flex", minHeight: "calc(100vh - 56px)" }}>
           {/* Sidebar */}
           <nav
             style={{
-              width: isMobile ? "240px" : "180px",
+              width: isMobile ? "280px" : "180px",
               backgroundColor: "#f8f8f8",
               borderRight: "1px solid #e0e0e0",
               padding: "8px 0",
@@ -1346,12 +1454,12 @@ export default function Layout({
                 ? {
                     position: "fixed",
                     top: 0,
-                    left: sidebarOpen ? 0 : "-260px",
+                    left: sidebarOpen ? 0 : "-300px",
                     bottom: 0,
                     zIndex: 250,
                     transition: "left 0.25s ease",
                     boxShadow: sidebarOpen
-                      ? "4px 0 16px rgba(0,0,0,0.2)"
+                      ? "4px 0 16px rgba(0,0,0,0.25)"
                       : "none",
                   }
                 : {}),
@@ -1386,6 +1494,9 @@ export default function Layout({
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
+                    minWidth: "44px",
+                    minHeight: "44px",
+                    justifyContent: "center",
                   }}
                 >
                   <CloseIcon size={18} style={{ color: "#555" }} />
@@ -1408,12 +1519,12 @@ export default function Layout({
                   gap: "8px",
                   width: "100%",
                   textAlign: "left",
-                  padding: "7px 14px",
+                  padding: "8px 14px",
                   border: "none",
                   backgroundColor:
                     currentPage === link.page.name ? "#e8e8e8" : "transparent",
                   cursor: "pointer",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   color: currentPage === link.page.name ? "#cc0000" : "#333",
                   fontWeight:
                     currentPage === link.page.name ? "bold" : "normal",
@@ -1421,6 +1532,7 @@ export default function Layout({
                     currentPage === link.page.name
                       ? "3px solid #cc0000"
                       : "3px solid transparent",
+                  minHeight: "44px",
                 }}
               >
                 <link.Icon size={16} style={{ flexShrink: 0, opacity: 0.85 }} />
@@ -1451,6 +1563,7 @@ export default function Layout({
                   cursor: "pointer",
                   fontSize: "11px",
                   color: creatorMode ? "#cc0000" : "#555",
+                  minHeight: "44px",
                 }}
                 data-ocid="nav.toggle"
               >
@@ -1505,18 +1618,19 @@ export default function Layout({
                     display: "block",
                     width: "100%",
                     textAlign: "left",
-                    padding: "7px 14px",
+                    padding: "8px 14px",
                     border: "none",
                     backgroundColor:
                       currentPage === "studio" ? "#e8e8e8" : "transparent",
                     cursor: "pointer",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     color: currentPage === "studio" ? "#cc0000" : "#333",
                     fontWeight: currentPage === "studio" ? "bold" : "normal",
                     borderLeft:
                       currentPage === "studio"
                         ? "3px solid #cc0000"
                         : "3px solid transparent",
+                    minHeight: "44px",
                   }}
                   data-ocid="nav.link"
                 >
@@ -1549,18 +1663,19 @@ export default function Layout({
                     display: "block",
                     width: "100%",
                     textAlign: "left",
-                    padding: "7px 14px",
+                    padding: "8px 14px",
                     border: "none",
                     backgroundColor:
                       currentPage === "mychannel" ? "#e8e8e8" : "transparent",
                     cursor: "pointer",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     color: currentPage === "mychannel" ? "#cc0000" : "#333",
                     fontWeight: currentPage === "mychannel" ? "bold" : "normal",
                     borderLeft:
                       currentPage === "mychannel"
                         ? "3px solid #cc0000"
                         : "3px solid transparent",
+                    minHeight: "44px",
                   }}
                   data-ocid="nav.link"
                 >
@@ -1593,18 +1708,19 @@ export default function Layout({
                     display: "block",
                     width: "100%",
                     textAlign: "left",
-                    padding: "7px 14px",
+                    padding: "8px 14px",
                     border: "none",
                     backgroundColor:
                       currentPage === "business" ? "#e8e8e8" : "transparent",
                     cursor: "pointer",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     color: currentPage === "business" ? "#cc0000" : "#333",
                     fontWeight: currentPage === "business" ? "bold" : "normal",
                     borderLeft:
                       currentPage === "business"
                         ? "3px solid #cc0000"
                         : "3px solid transparent",
+                    minHeight: "44px",
                   }}
                   data-ocid="nav.link"
                 >
@@ -1647,11 +1763,11 @@ export default function Layout({
                   display: "block",
                   width: "100%",
                   textAlign: "left",
-                  padding: "5px 14px",
+                  padding: "6px 14px",
                   border: "none",
                   backgroundColor: "transparent",
                   cursor: "pointer",
-                  fontSize: "11px",
+                  fontSize: "12px",
                   color: "#555",
                 }}
               >
@@ -1683,7 +1799,20 @@ export default function Layout({
                 }}
                 title={godModeUnlocked ? "God Mode Active" : ""}
               >
-                {godModeUnlocked ? "⚡ GOD MODE" : "v11.0"}
+                {godModeUnlocked ? (
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <LightningIcon size={12} style={{ color: "#ffd700" }} />
+                    GOD MODE
+                  </span>
+                ) : (
+                  "v11.0"
+                )}
               </button>
               <button
                 type="button"
@@ -1710,7 +1839,12 @@ export default function Layout({
                 }}
                 data-ocid="nav.button"
               >
-                \uD83D\uDD04 New Game
+                <span
+                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <NewGameIcon size={13} />
+                  New Game
+                </span>
               </button>
             </div>
           </nav>
@@ -1722,6 +1856,9 @@ export default function Layout({
               minWidth: 0,
               padding: isMobile ? "8px" : "16px",
               overflowX: "hidden",
+              // On mobile: no left margin (sidebar is overlay), add bottom padding for bottom nav
+              marginLeft: 0,
+              paddingBottom: isMobile ? `${BOTTOM_NAV_HEIGHT + 16}px` : "16px",
             }}
           >
             {children}
@@ -1738,7 +1875,7 @@ export default function Layout({
                 color: "#aaa",
               }}
             >
-              \u00A9 {new Date().getFullYear()}. Built with \u2764\uFE0F using{" "}
+              &copy; {new Date().getFullYear()}. Built with love using{" "}
               <a
                 href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
                 target="_blank"
@@ -1783,8 +1920,17 @@ export default function Layout({
                   color: "#fff",
                 }}
               >
-                <div style={{ fontWeight: "bold", fontSize: "14px" }}>
-                  ⚠️ Start New Game?
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <WarningIcon size={16} style={{ color: "#fff" }} />
+                  Start New Game?
                 </div>
               </div>
               <div style={{ padding: "16px" }}>
@@ -1841,12 +1987,117 @@ export default function Layout({
                     }}
                     data-ocid="nav.confirm_button"
                   >
-                    🔄 Reset Everything
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <RefreshIcon size={14} />
+                      Reset Everything
+                    </span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {/* Mobile Bottom Navigation Bar */}
+        {isMobile && (
+          <nav
+            data-ocid="nav.bottom_bar"
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: `${BOTTOM_NAV_HEIGHT}px`,
+              backgroundColor: "#ffffff",
+              borderTop: "1px solid #e0e0e0",
+              display: "flex",
+              alignItems: "stretch",
+              zIndex: 100,
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+              boxShadow: "0 -1px 4px rgba(0,0,0,0.08)",
+            }}
+          >
+            {BOTTOM_NAV_ITEMS.map((item) => {
+              const isActive = currentPage === item.page.name;
+              const isUpload = item.page.name === "upload";
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  data-ocid={`nav.bottom.${item.page.name}`}
+                  onClick={() => {
+                    if (isUpload) {
+                      handleUploadClick();
+                    } else {
+                      navigate(item.page);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "2px",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                    padding: "4px 0",
+                    color: isActive ? "#cc0000" : "#606060",
+                  }}
+                >
+                  {isUpload ? (
+                    // Center upload button — styled differently
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                        backgroundColor: isActive ? "#cc0000" : "#f0f0f0",
+                        border: `2px solid ${isActive ? "#aa0000" : "#c0c0c0"}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="20"
+                        height="20"
+                        fill={isActive ? "#fff" : "#606060"}
+                        aria-hidden="true"
+                      >
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <item.icon
+                      size={22}
+                      style={{ color: isActive ? "#cc0000" : "#606060" }}
+                    />
+                  )}
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: isActive ? "bold" : "normal",
+                      color: isActive ? "#cc0000" : "#606060",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
         )}
       </div>
       <DailyLoginModal />

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Page } from "../App";
+import { FireIcon } from "../components/Icons";
 import VideoCard from "../components/VideoCard";
 import { mockVideos } from "../data/mockVideos";
 import { useGetAllVideos } from "../hooks/useQueries";
@@ -25,6 +26,7 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [showWhatsNew, setShowWhatsNew] = useState(true);
   const { activeTrendingChallenge } = useGame();
+  const isMobile = window.innerWidth < 768;
 
   const matchesCategory = (cat: string, activeFilter: string) => {
     if (activeFilter === "All") return true;
@@ -64,9 +66,14 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
             color: "#fff",
           }}
         >
-          <span style={{ fontSize: "24px" }}>🔥</span>
-          <div>
-            <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+          <FireIcon size={20} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontWeight: "bold",
+                fontSize: isMobile ? "13px" : "14px",
+              }}
+            >
               Trending Challenge: {activeTrendingChallenge.tag}
             </div>
             <div style={{ fontSize: "11px", opacity: 0.9, marginTop: "2px" }}>
@@ -76,12 +83,13 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
           </div>
           <div
             style={{
-              marginLeft: "auto",
+              flexShrink: 0,
               backgroundColor: "rgba(255,255,255,0.2)",
               borderRadius: "3px",
               padding: "4px 10px",
               fontSize: "11px",
               fontWeight: "bold",
+              whiteSpace: "nowrap",
             }}
           >
             {activeTrendingChallenge.ticksRemaining} ticks left
@@ -104,7 +112,7 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
             gap: "10px",
           }}
         >
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
                 fontWeight: "bold",
@@ -113,7 +121,7 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
                 marginBottom: "6px",
               }}
             >
-              🎉 What&apos;s New in V4
+              What&apos;s New in V4
             </div>
             <ul
               style={{
@@ -132,8 +140,8 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
               <li>Channel avatars added to all video cards</li>
               <li>Watch page fully responsive on all devices</li>
               <li>
-                🎮 God Mode: triple-click &quot;v4.0&quot; in the sidebar footer
-                to unlock
+                God Mode: triple-click &quot;v4.0&quot; in the sidebar footer to
+                unlock
               </li>
             </ul>
           </div>
@@ -150,21 +158,44 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
               lineHeight: 1,
               padding: "0 2px",
               flexShrink: 0,
+              minWidth: "24px",
+              minHeight: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
             aria-label="Dismiss"
           >
-            ✕
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
       )}
 
-      {/* Category filter bar */}
+      {/* Category filter bar — horizontal scroll on mobile */}
       <div
         style={{
           display: "flex",
           gap: "6px",
           marginBottom: "12px",
-          flexWrap: "wrap",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          paddingBottom: "2px",
+          flexWrap: isMobile ? "nowrap" : "wrap",
         }}
       >
         {categoryFilters.map((cat) => (
@@ -174,8 +205,8 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
             data-ocid="home.category.tab"
             onClick={() => setActiveCategory(cat)}
             style={{
-              padding: "4px 12px",
-              fontSize: "11px",
+              padding: "6px 14px",
+              fontSize: "12px",
               border: "1px solid #c0c0c0",
               borderRadius: "2px",
               backgroundColor: activeCategory === cat ? "#cc0000" : "#f0f0f0",
@@ -183,6 +214,8 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
               cursor: "pointer",
               fontWeight: activeCategory === cat ? "bold" : "normal",
               transition: "background-color 0.1s ease",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             {cat}
@@ -200,7 +233,7 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
       >
         <h2
           style={{
-            fontSize: "14px",
+            fontSize: isMobile ? "14px" : "14px",
             fontWeight: "bold",
             color: "#333",
             margin: 0,
@@ -214,13 +247,15 @@ export default function HomePage({ navigate, searchQuery }: HomePageProps) {
         </h2>
       </div>
 
-      {/* Video grid */}
+      {/* Video grid — single column on mobile, auto-fill on desktop */}
       <div
         data-ocid="home.videos.list"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          gap: "16px",
+          gridTemplateColumns: isMobile
+            ? "1fr"
+            : "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: isMobile ? "0" : "16px",
         }}
       >
         {filteredReal.map((v, i) => (

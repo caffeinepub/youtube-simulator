@@ -3,6 +3,16 @@ import { toast } from "sonner";
 import type { Page } from "../App";
 import AnimatedNumber from "../components/AnimatedNumber";
 import { ConfettiEffect } from "../components/ConfettiEffect";
+import {
+  ContestIcon,
+  GiftIcon,
+  LeaderboardIcon,
+  MemeReactionIcon,
+  RivalsIcon,
+  ShoutoutIcon,
+  StarIcon,
+  TrophyIcon,
+} from "../components/Icons";
 import { useGame } from "../store/gameStore";
 
 interface FanFestPageProps {
@@ -10,17 +20,18 @@ interface FanFestPageProps {
 }
 
 const AI_CREATORS = [
-  { name: "TechWithAlex", score: 48200, badge: "🥇" },
-  { name: "GamingJordan", score: 43100, badge: "🥈" },
-  { name: "CookingByMaria", score: 38500, badge: "🥉" },
-  { name: "FitnessFreakTom", score: 31900, badge: "🏅" },
-  { name: "TravelSophia", score: 27300, badge: "🏅" },
+  { name: "TechWithAlex", score: 48200, rank: 1 },
+  { name: "GamingJordan", score: 43100, rank: 2 },
+  { name: "CookingByMaria", score: 38500, rank: 3 },
+  { name: "FitnessFreakTom", score: 31900, rank: 4 },
+  { name: "TravelSophia", score: 27300, rank: 5 },
 ];
 
 const FANFEST_EVENTS = [
   {
     id: "meme_battle",
-    name: "⚔️ Meme Battle",
+    name: "Meme Battle",
+    icon: "rivals" as const,
     desc: "Go head-to-head with memes. Crowd votes for the funniest!",
     color: "#e53935",
     xpReward: 500,
@@ -30,7 +41,8 @@ const FANFEST_EVENTS = [
   },
   {
     id: "shoutout_war",
-    name: "📢 Shoutout War",
+    name: "Shoutout War",
+    icon: "shoutout" as const,
     desc: "Give shoutouts, collect shoutouts. Biggest reach wins!",
     color: "#8e24aa",
     xpReward: 500,
@@ -40,7 +52,8 @@ const FANFEST_EVENTS = [
   },
   {
     id: "gift_drop",
-    name: "🎁 Gift Drop",
+    name: "Gift Drop",
+    icon: "gift" as const,
     desc: "Drop merch and gifts. Fans compete to catch them!",
     color: "#00897b",
     xpReward: 500,
@@ -50,7 +63,8 @@ const FANFEST_EVENTS = [
   },
   {
     id: "fan_quiz",
-    name: "🧠 Fan Quiz",
+    name: "Fan Quiz",
+    icon: "contest" as const,
     desc: "How well do your fans know you? Live trivia battle!",
     color: "#f57c00",
     xpReward: 500,
@@ -61,18 +75,18 @@ const FANFEST_EVENTS = [
 ];
 
 const FAN_MESSAGES = [
-  "You changed my life with your content! ❤️",
+  "You changed my life with your content!",
   "PLEASE come to my city for a meet and greet!!",
-  "I've watched every single one of your videos 🙏",
+  "I've watched every single one of your videos",
   "Your videos got me through the toughest times. Thank you.",
   "LEGEND! There's literally no one like you!",
   "Can you shoutout my little brother? He's your biggest fan!",
   "I've been watching since the beginning, so proud of your growth!",
   "Your channel inspired me to start my own! You're the GOAT!",
-  "I made fan art of you!! 🎨 Hope you see this!",
-  "First video I found by accident, now I'm obsessed 😂",
+  "I made fan art of you!! Hope you see this!",
+  "First video I found by accident, now I'm obsessed",
   "You deserve way more recognition, keep grinding!",
-  "Best creator on the platform by FAR 🔥",
+  "Best creator on the platform by FAR",
 ];
 
 const MEMES = [
@@ -87,13 +101,21 @@ const MEMES = [
 ];
 
 const GIFTS = [
-  { emoji: "👕", label: "Branded T-shirt" },
-  { emoji: "🧢", label: "Creator Cap" },
-  { emoji: "🎒", label: "Creator Backpack" },
-  { emoji: "🎮", label: "Gaming Controller" },
-  { emoji: "☕", label: "Creator Mug" },
-  { emoji: "🎁", label: "Mystery Box" },
+  { label: "Branded T-shirt" },
+  { label: "Creator Cap" },
+  { label: "Creator Backpack" },
+  { label: "Gaming Controller" },
+  { label: "Creator Mug" },
+  { label: "Mystery Box" },
 ];
+
+function EventIcon({ type, color }: { type: string; color: string }) {
+  const style = { width: 16, height: 16, color } as React.CSSProperties;
+  if (type === "rivals") return <RivalsIcon style={style} />;
+  if (type === "shoutout") return <ShoutoutIcon style={style} />;
+  if (type === "gift") return <GiftIcon style={style} />;
+  return <ContestIcon style={style} />;
+}
 
 function CountdownTimer({ durationSecs }: { durationSecs: number }) {
   const [secs, setSecs] = useState(durationSecs);
@@ -132,11 +154,11 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
   // Player rank in leaderboard
   const playerScore = fanfestScore;
   const leaderboard = [
-    ...AI_CREATORS,
+    ...AI_CREATORS.map((c) => ({ ...c, isPlayer: false })),
     {
       name: g.channel?.name ?? "Your Channel",
       score: playerScore,
-      badge: "⭐",
+      rank: 0,
       isPlayer: true,
     },
   ].sort((a, b) => b.score - a.score);
@@ -150,7 +172,7 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
     g.joinFanFestEvent(event.id, event.xpReward, subBoost);
     setConfetti(true);
     setTimeout(() => setConfetti(false), 3000);
-    toast.success(`🎉 Joined ${event.name}!`, {
+    toast.success(`Joined ${event.name}!`, {
       description: `+${event.xpReward} XP & +${subBoost.toLocaleString()} new subscribers from the hype!`,
       duration: 5000,
     });
@@ -160,8 +182,8 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
     const msg = FAN_MESSAGES[Math.floor(Math.random() * FAN_MESSAGES.length)];
     setShoutoutMsg(msg);
     g.gainXp(200);
-    g.addNotification(`📢 Fan shoutout: "${msg}"`, "comment");
-    toast.success("📢 Shoutout sent!", {
+    g.addNotification(`Fan shoutout: "${msg}"`, "comment");
+    toast.success("Shoutout sent!", {
       description: `A fan says: "${msg}"`,
       duration: 4000,
     });
@@ -170,7 +192,7 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
   function doMemeReaction() {
     setMemeIdx(Math.floor(Math.random() * MEMES.length));
     g.gainXp(300);
-    toast.success("😂 Meme reacted!", {
+    toast.success("Meme reacted!", {
       description: "+300 XP for keeping it real",
       duration: 3000,
     });
@@ -186,10 +208,10 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
     }
     const gift = GIFTS[Math.floor(Math.random() * GIFTS.length)];
     const fan = `Fan_${Math.floor(1000 + Math.random() * 9000)}`;
-    setGiftSent(`${gift.emoji} ${gift.label} → ${fan}`);
+    setGiftSent(`${gift.label} → ${fan}`);
     setGiftAnim(true);
     g.spendCoinsForGift(500, subs > 0 ? Math.floor(subs * 0.01) : 100);
-    toast.success(`${gift.emoji} Gift sent!`, {
+    toast.success("Gift sent!", {
       description: `You sent a ${gift.label} to ${fan}! Fan loyalty +1%`,
       duration: 5000,
     });
@@ -249,9 +271,13 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                   fontSize: "clamp(20px, 5vw, 32px)",
                   fontWeight: 900,
                   letterSpacing: "-0.5px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                 }}
               >
-                🎪 YouTube FanFest
+                <TrophyIcon style={{ width: 28, height: 28, color: "#fff" }} />
+                YouTube FanFest
               </h1>
               <span
                 style={{
@@ -339,9 +365,13 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
               fontWeight: 700,
               color: "#333",
               margin: "0 0 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
-            🎭 Active Events
+            <ContestIcon style={{ width: 18, height: 18, color: "#cc0000" }} />
+            Active Events
           </h2>
           <div
             style={{ display: "flex", flexDirection: "column", gap: "10px" }}
@@ -375,8 +405,12 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                           fontSize: "14px",
                           fontWeight: 700,
                           color: ev.color,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
                         }}
                       >
+                        <EventIcon type={ev.icon} color={ev.color} />
                         {ev.name}
                       </div>
                       <div
@@ -417,9 +451,9 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                   >
                     <div style={{ fontSize: "11px", color: "#888" }}>
                       <span style={{ marginRight: "10px" }}>
-                        ⏱ <CountdownTimer durationSecs={countdownSecs} />
+                        <CountdownTimer durationSecs={countdownSecs} />
                       </span>
-                      <span>👥 {ev.participants.toLocaleString()} joined</span>
+                      <span>{ev.participants.toLocaleString()} joined</span>
                     </div>
                     {!joined && g.channel && (
                       <button
@@ -474,9 +508,15 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                 fontWeight: 700,
                 color: "#333",
                 margin: "0 0 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              🎬 FanFest Activities
+              <ContestIcon
+                style={{ width: 18, height: 18, color: "#cc0000" }}
+              />
+              FanFest Activities
             </h2>
             <div
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
@@ -504,12 +544,18 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                         fontSize: "13px",
                         fontWeight: 700,
                         color: "#333",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
-                      📢 Give a Shoutout
+                      <ShoutoutIcon
+                        style={{ width: 14, height: 14, color: "#cc0000" }}
+                      />
+                      Give a Shoutout
                     </div>
                     <div style={{ fontSize: "11px", color: "#888" }}>
-                      Receive a fan message & earn +200 XP
+                      Receive a fan message &amp; earn +200 XP
                     </div>
                   </div>
                   <button
@@ -543,7 +589,7 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                       animation: "fadeIn 0.3s ease",
                     }}
                   >
-                    💬 &ldquo;{shoutoutMsg}&rdquo;
+                    &ldquo;{shoutoutMsg}&rdquo;
                   </div>
                 )}
               </div>
@@ -571,12 +617,18 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                         fontSize: "13px",
                         fontWeight: 700,
                         color: "#333",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
-                      😂 Live Meme Reaction
+                      <MemeReactionIcon
+                        style={{ width: 14, height: 14, color: "#8e24aa" }}
+                      />
+                      Live Meme Reaction
                     </div>
                     <div style={{ fontSize: "11px", color: "#888" }}>
-                      React to a fan meme & earn +300 XP
+                      React to a fan meme &amp; earn +300 XP
                     </div>
                   </div>
                   <button
@@ -640,9 +692,15 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                         fontSize: "13px",
                         fontWeight: 700,
                         color: "#333",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
-                      🎁 Send a Gift
+                      <GiftIcon
+                        style={{ width: 14, height: 14, color: "#00897b" }}
+                      />
+                      Send a Gift
                     </div>
                     <div style={{ fontSize: "11px", color: "#888" }}>
                       Costs 500 coins · Boosts fan loyalty
@@ -661,11 +719,15 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                       fontWeight: 700,
                       cursor: (g.coins ?? 0) < 500 ? "not-allowed" : "pointer",
                       opacity: (g.coins ?? 0) < 500 ? 0.5 : 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
                     }}
                     disabled={(g.coins ?? 0) < 500}
                     data-ocid="fanfest.secondary_button"
                   >
-                    Send Gift 🎁
+                    <GiftIcon style={{ width: 13, height: 13 }} />
+                    Send Gift
                   </button>
                 </div>
                 {giftSent && giftAnim && (
@@ -678,9 +740,15 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                       fontSize: "12px",
                       color: "#00695c",
                       animation: "fadeIn 0.3s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
                     }}
                   >
-                    ✅ Sent: {giftSent} · Fan Loyalty +1%
+                    <GiftIcon
+                      style={{ width: 13, height: 13, color: "#00695c" }}
+                    />
+                    Sent: {giftSent} · Fan Loyalty +1%
                   </div>
                 )}
                 <div
@@ -703,9 +771,15 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                 fontWeight: 700,
                 color: "#333",
                 margin: "0 0 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              🏆 FanFest Leaderboard
+              <LeaderboardIcon
+                style={{ width: 18, height: 18, color: "#cc0000" }}
+              />
+              FanFest Leaderboard
             </h2>
             <div
               style={{
@@ -716,6 +790,14 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
             >
               {leaderboard.map((entry, i) => {
                 const isPlayer = (entry as { isPlayer?: boolean }).isPlayer;
+                const rankColor =
+                  i === 0
+                    ? "#ffd700"
+                    : i === 1
+                      ? "#c0c0c0"
+                      : i === 2
+                        ? "#cd7f32"
+                        : "#e0e0e0";
                 return (
                   <div
                     key={entry.name}
@@ -737,9 +819,34 @@ export default function FanFestPage({ navigate: _navigate }: FanFestPageProps) {
                     data-ocid={`fanfest.row.${i + 1}`}
                   >
                     <div
-                      style={{ width: "28px", fontSize: "16px", flexShrink: 0 }}
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      {entry.badge}
+                      {i < 3 ? (
+                        <TrophyIcon
+                          style={{ width: 18, height: 18, color: rankColor }}
+                        />
+                      ) : isPlayer ? (
+                        <StarIcon
+                          style={{ width: 16, height: 16, color: "#cc0000" }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: "#aaa",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {String(i + 1)}
+                        </span>
+                      )}
                     </div>
                     <div
                       style={{

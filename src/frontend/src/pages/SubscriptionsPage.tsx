@@ -1,4 +1,5 @@
 import type { Page } from "../App";
+import { ChannelIcon, SubscriptionsIcon } from "../components/Icons";
 import { formatViews, mockVideos } from "../data/mockVideos";
 
 interface SubscriptionsPageProps {
@@ -6,21 +7,11 @@ interface SubscriptionsPageProps {
 }
 
 const mockChannels = [
-  { id: "ch-skate", name: "SkateLife", icon: "\ud83d\udef9", subs: "4.2M" },
-  {
-    id: "ch-mario",
-    name: "CookingWithMario",
-    icon: "\ud83c\udf55",
-    subs: "1.8M",
-  },
-  { id: "ch-rock", name: "RockLegends", icon: "\ud83c\udfb8", subs: "9.1M" },
-  {
-    id: "ch-cats",
-    name: "CatLoversUnited",
-    icon: "\ud83d\udc31",
-    subs: "6.5M",
-  },
-  { id: "ch-guild", name: "GuildMasterTV", icon: "\ud83c\udfae", subs: "980K" },
+  { id: "ch-skate", name: "SkateLife", subs: "4.2M" },
+  { id: "ch-mario", name: "CookingWithMario", subs: "1.8M" },
+  { id: "ch-rock", name: "RockLegends", subs: "9.1M" },
+  { id: "ch-cats", name: "CatLoversUnited", subs: "6.5M" },
+  { id: "ch-guild", name: "GuildMasterTV", subs: "980K" },
 ];
 
 export default function SubscriptionsPage({
@@ -42,9 +33,13 @@ export default function SubscriptionsPage({
             fontWeight: "bold",
             color: "#333",
             margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          \ud83d\udce7 Subscriptions
+          <SubscriptionsIcon className="w-4 h-4" style={{ color: "#cc0000" }} />
+          Subscriptions
         </h2>
       </div>
       <div style={{ marginBottom: "20px" }}>
@@ -77,7 +72,7 @@ export default function SubscriptionsPage({
                 minWidth: "90px",
               }}
             >
-              <span style={{ fontSize: "28px" }}>{ch.icon}</span>
+              <ChannelIcon className="w-7 h-7" style={{ color: "#888" }} />
               <span
                 style={{ fontSize: "11px", fontWeight: "bold", color: "#333" }}
               >

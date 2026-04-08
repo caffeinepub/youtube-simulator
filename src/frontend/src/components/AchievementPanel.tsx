@@ -1,10 +1,19 @@
 import { useGame } from "../store/gameStore";
+import {
+  AchievementIcon,
+  CoinIcon,
+  FireIcon,
+  ShieldIcon,
+  StarIcon,
+  TrophyIcon,
+  VideoCamIcon,
+} from "./Icons";
 
 interface Achievement {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  IconComp: React.ComponentType<{ className?: string }>;
 }
 
 const ACHIEVEMENTS: Achievement[] = [
@@ -12,64 +21,65 @@ const ACHIEVEMENTS: Achievement[] = [
     id: "first_upload",
     name: "First Upload",
     description: "Upload your first video",
-    icon: "🎬",
+    IconComp: VideoCamIcon,
   },
   {
     id: "subs_1k",
     name: "1K Subscribers",
     description: "Reach 1,000 subscribers",
-    icon: "🌟",
+    IconComp: StarIcon,
   },
   {
     id: "subs_10k",
     name: "10K Subscribers",
     description: "Reach 10,000 subscribers",
-    icon: "💫",
+    IconComp: StarIcon,
   },
   {
     id: "subs_100k",
     name: "100K Subscribers",
     description: "Reach 100,000 subscribers",
-    icon: "🏆",
+    IconComp: TrophyIcon,
   },
   {
     id: "subs_1m",
     name: "1M Subscribers",
     description: "Reach 1,000,000 subscribers",
-    icon: "👑",
+    IconComp: TrophyIcon,
   },
   {
     id: "viral_video",
     name: "Viral Video",
     description: "Get a video to 100K+ views",
-    icon: "🔥",
+    IconComp: FireIcon,
   },
   {
     id: "sponsorship_king",
     name: "Sponsorship King",
     description: "Accept 3+ sponsorships",
-    icon: "💰",
+    IconComp: CoinIcon,
   },
   {
     id: "play_button_silver",
     name: "Silver Play Button",
     description: "Earn the Silver Play Button",
-    icon: "🥈",
+    IconComp: AchievementIcon,
   },
   {
     id: "play_button_gold",
     name: "Gold Play Button",
     description: "Earn the Gold Play Button",
-    icon: "🥇",
+    IconComp: AchievementIcon,
   },
   {
     id: "play_button_diamond",
     name: "Diamond Play Button",
     description: "Earn the Diamond Play Button",
-    icon: "💎",
+    IconComp: AchievementIcon,
   },
 ];
 
+// Export legacy shape for any consumers that used the string-icon format
 export { ACHIEVEMENTS };
 
 export function AchievementPanel() {
@@ -88,7 +98,7 @@ export function AchievementPanel() {
         </span>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {ACHIEVEMENTS.map((ach) => {
+        {ACHIEVEMENTS.map((ach, idx) => {
           const unlocked = unlockedSet.has(ach.id);
           return (
             <div
@@ -98,9 +108,13 @@ export function AchievementPanel() {
                   ? "border-yellow-500/50 bg-yellow-500/10"
                   : "border-border bg-muted/30 opacity-50 grayscale"
               }`}
-              data-ocid={`achievements.item.${ACHIEVEMENTS.indexOf(ACHIEVEMENTS.find((a) => a.id === ach.id)!) + 1}`}
+              data-ocid={`achievements.item.${idx + 1}`}
             >
-              <span className="text-2xl">{unlocked ? ach.icon : "🔒"}</span>
+              {unlocked ? (
+                <ach.IconComp className="w-6 h-6" />
+              ) : (
+                <ShieldIcon className="w-6 h-6" />
+              )}
               <span className="text-xs font-semibold text-foreground leading-tight">
                 {ach.name}
               </span>

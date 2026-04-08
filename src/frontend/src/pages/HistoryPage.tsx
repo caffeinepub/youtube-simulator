@@ -1,4 +1,5 @@
 import type { Page } from "../App";
+import { CloseIcon, HistoryIcon, TrashIcon } from "../components/Icons";
 import { formatViews, mockVideos } from "../data/mockVideos";
 import { useGame } from "../store/gameStore";
 
@@ -75,9 +76,13 @@ export default function HistoryPage({ navigate }: HistoryPageProps) {
             fontWeight: "bold",
             color: "#333",
             margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          &#x1F551; Watch History
+          <HistoryIcon className="w-4 h-4" style={{ color: "#cc0000" }} />
+          Watch History
         </h2>
         {historyItems.length > 0 && (
           <button
@@ -91,10 +96,14 @@ export default function HistoryPage({ navigate }: HistoryPageProps) {
               cursor: "pointer",
               fontSize: "12px",
               color: "#cc0000",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
             }}
             data-ocid="history.delete_button"
           >
-            &#x1F5D1; Clear All
+            <TrashIcon className="w-3 h-3" />
+            Clear All
           </button>
         )}
       </div>
@@ -110,8 +119,14 @@ export default function HistoryPage({ navigate }: HistoryPageProps) {
           }}
           data-ocid="history.empty_state"
         >
-          <div style={{ fontSize: "40px", marginBottom: "12px" }}>
-            &#x1F551;
+          <div
+            style={{
+              marginBottom: "12px",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <HistoryIcon className="w-10 h-10" style={{ color: "#ccc" }} />
           </div>
           <div style={{ fontSize: "13px" }}>Your watch history is empty.</div>
           <div style={{ fontSize: "12px", color: "#aaa", marginTop: "4px" }}>
@@ -185,9 +200,13 @@ export default function HistoryPage({ navigate }: HistoryPageProps) {
                       fontSize: "10px",
                       color: "#aaa",
                       marginTop: "2px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "3px",
                     }}
                   >
-                    &#x1F551; {formatRelativeTime(v.watchedAt)}
+                    <HistoryIcon className="w-3 h-3" />
+                    {formatRelativeTime(v.watchedAt)}
                   </div>
                 </div>
               </button>
@@ -199,15 +218,15 @@ export default function HistoryPage({ navigate }: HistoryPageProps) {
                   border: "none",
                   cursor: "pointer",
                   color: "#aaa",
-                  fontSize: "16px",
                   padding: "4px",
                   flexShrink: 0,
-                  lineHeight: 1,
+                  display: "flex",
+                  alignItems: "center",
                 }}
                 title="Remove from history"
                 data-ocid="history.delete_button"
               >
-                &#x00D7;
+                <CloseIcon className="w-4 h-4" />
               </button>
             </div>
           ))}

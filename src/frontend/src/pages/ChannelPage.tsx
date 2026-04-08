@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Page } from "../App";
+import { BellFilledIcon, BellIcon, CoinIcon } from "../components/Icons";
 import VideoCard from "../components/VideoCard";
 import { mockVideos } from "../data/mockVideos";
 import {
@@ -49,7 +50,7 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
 
   const handleTip = (amount: number) => {
     setShowTipMenu(false);
-    toast.success(`🏺 Tip of $${amount} sent to ${channelName}!`);
+    toast.success(`Tip of $${amount} sent to ${channelName}!`);
   };
 
   return (
@@ -129,9 +130,20 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
               fontSize: "12px",
               color: isSubscribed ? "#333" : "#fff",
               fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
             }}
           >
-            {isSubscribed ? "\u2713 Subscribed" : "Subscribe"}
+            {isSubscribed ? (
+              <>
+                <BellFilledIcon size={13} /> Subscribed
+              </>
+            ) : (
+              <>
+                <BellIcon size={13} /> Subscribe
+              </>
+            )}
           </button>
           {/* Feature 16: Tip button */}
           <div style={{ position: "relative" }}>
@@ -147,10 +159,13 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
                 fontSize: "12px",
                 color: "#555",
                 fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
               }}
               data-ocid="channel.button"
             >
-              🏺 Tip
+              <CoinIcon size={13} /> Tip
             </button>
             {showTipMenu && (
               <div
@@ -267,12 +282,12 @@ export default function ChannelPage({ navigate, channelId }: ChannelPageProps) {
                   navigate={navigate}
                   index={i + 1}
                   type="mock"
-                  video={v as any}
+                  video={v as never}
                 />
               ))
-            : (channelVideos as any[]).map((v, i) => (
+            : (channelVideos as never[]).map((v: never, i) => (
                 <VideoCard
-                  key={v.id}
+                  key={(v as { id: string }).id}
                   navigate={navigate}
                   index={i + 1}
                   type="real"

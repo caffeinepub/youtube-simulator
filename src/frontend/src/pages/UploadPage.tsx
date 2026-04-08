@@ -9,6 +9,9 @@ import {
   FilmIcon,
   ImageIcon,
   LightbulbIcon,
+  LongVideoIcon,
+  MegaphoneIcon,
+  ShortVideoIcon,
   TagIcon,
   UploadIcon,
   VideoIcon,
@@ -128,7 +131,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
     });
     if (isBusinessPromo && creatorBusiness) {
       promoteBusiness();
-      toast.success(`📣 Business promo boost applied to "${title}"!`);
+      toast.success(`Business promo boost applied to "${title}"!`);
     }
     toast.success(`"${title}" uploaded successfully!`);
     navigate({ name: "mychannel" });
@@ -653,7 +656,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               data-ocid="upload.checkbox"
               style={{ cursor: "pointer" }}
             />
-            🔞 Age-restricted content (18+)
+            Age-restricted content (18+)
           </label>
           {creatorBusiness && (
             <button
@@ -710,9 +713,16 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                     fontSize: "13px",
                     fontWeight: 600,
                     color: isBusinessPromo ? "#2e7d32" : "#333",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
                   }}
                 >
-                  📣 Business Promo
+                  <MegaphoneIcon
+                    size={13}
+                    color={isBusinessPromo ? "#2e7d32" : "#333"}
+                  />{" "}
+                  Business Promo
                 </div>
                 <div style={{ fontSize: "11px", color: "#666" }}>
                   Boost <strong>{creatorBusiness.name}</strong> revenue &amp;
@@ -871,7 +881,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               }}
               data-ocid="upload.toggle"
             >
-              📱 Short (&lt; 60s)
+              <ShortVideoIcon size={16} /> Short (&lt; 60s)
             </button>
             <button
               type="button"
@@ -894,7 +904,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               }}
               data-ocid="upload.toggle"
             >
-              🎬 Long Video
+              <LongVideoIcon size={16} /> Long Video
             </button>
           </div>
         </div>
@@ -909,7 +919,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
             }}
           >
             <div style={{ ...sectionLabel, color: "#e65100" }}>
-              &#x1F4F1; Short-form Tips
+              <ShortVideoIcon size={15} color="#e65100" /> Short-form Tips
             </div>
             <ul
               style={{
@@ -948,12 +958,10 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#fff",
-                  fontSize: "18px",
                   flexShrink: 0,
                 }}
               >
-                &#x1F4F1;
+                <ShortVideoIcon size={24} color="#fff" />
               </div>
               <div>
                 <div
@@ -1241,7 +1249,7 @@ export default function UploadPage({ navigate }: UploadPageProps) {
               margin: 0,
             }}
           >
-            &#x1F4D1; Add Chapters {showChapters ? "\u25B2" : "\u25BC"}
+            Add Chapters {showChapters ? "\u25B2" : "\u25BC"}
           </button>
           {showChapters && (
             <div
@@ -1306,10 +1314,13 @@ export default function UploadPage({ navigate }: UploadPageProps) {
                         border: "none",
                         cursor: "pointer",
                         color: "#aaa",
-                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "2px",
                       }}
                     >
-                      &#x00D7;
+                      <CloseIcon size={14} />
                     </button>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 import type { Page } from "../App";
+import { FireIcon } from "../components/Icons";
 import { formatViews, mockVideos } from "../data/mockVideos";
 
 interface TrendingPageProps {
@@ -31,9 +32,13 @@ export default function TrendingPage({ navigate }: TrendingPageProps) {
             fontWeight: "bold",
             color: "#333",
             margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          🔥 Trending
+          <FireIcon className="w-4 h-4" style={{ color: "#cc0000" }} />
+          Trending
         </h2>
       </div>
       <div
@@ -81,9 +86,12 @@ export default function TrendingPage({ navigate }: TrendingPageProps) {
                   fontWeight: "bold",
                   padding: "2px 7px",
                   borderRadius: "2px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "3px",
                 }}
               >
-                🔥 #{i + 1}
+                <FireIcon className="w-3 h-3" />#{i + 1}
               </div>
               <div
                 style={{

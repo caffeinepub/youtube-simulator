@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useGame } from "../store/gameStore";
+import { CoinIcon, GiftIcon, StarIcon, StreakIcon } from "./Icons";
 
 export function DailyLoginModal() {
   const { lastLoginDate, loginStreak, claimDailyBonus, soundEffectsEnabled } =
@@ -44,24 +45,28 @@ export function DailyLoginModal() {
       data-ocid="daily_bonus.modal"
     >
       <div className="relative bg-card border border-border rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
-        <div className="text-5xl mb-2">🎁</div>
+        <div className="flex justify-center mb-2">
+          <GiftIcon className="w-12 h-12" style={{ color: "#eab308" }} />
+        </div>
         <h2 className="text-2xl font-bold text-foreground mb-1">
           Daily Bonus!
         </h2>
-        <p className="text-muted-foreground text-sm mb-4">
-          🔥 Day {streakDay} streak!
+        <p className="text-muted-foreground text-sm mb-4 flex items-center justify-center gap-1">
+          <StreakIcon className="w-4 h-4" style={{ color: "#f97316" }} />
+          Day {streakDay} streak!
         </p>
 
         <div className="flex justify-center gap-6 mb-6">
           <div className="flex flex-col items-center">
-            <span className="text-3xl font-bold text-yellow-400">
-              🪙 {reward.coins}
+            <span className="text-3xl font-bold text-yellow-400 flex items-center gap-1">
+              <CoinIcon className="w-6 h-6" />
+              {reward.coins}
             </span>
             <span className="text-xs text-muted-foreground mt-1">Coins</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-3xl font-bold text-blue-400">
-              ✨ +{reward.xp}
+            <span className="text-3xl font-bold text-blue-400 flex items-center gap-1">
+              <StarIcon className="w-6 h-6" />+{reward.xp}
             </span>
             <span className="text-xs text-muted-foreground mt-1">XP</span>
           </div>

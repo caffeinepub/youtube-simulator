@@ -6,16 +6,76 @@ import type {
   CreatorBusiness,
   ProductDrop,
 } from "../store/gameStore";
+import {
+  AdsIcon,
+  AnalyticsIcon,
+  BeautyIcon,
+  BranchIcon,
+  BrandIcon,
+  BusinessIcon,
+  CheckIcon,
+  CloseIcon,
+  CoinIcon,
+  CustomerIcon,
+  CustomerServiceIcon,
+  DeleteIcon,
+  DropIcon,
+  FacilitiesIcon,
+  FameIcon,
+  FitnessIcon,
+  FlagshipIcon,
+  FoodIcon,
+  GamepadIcon,
+  MarketingIcon,
+  MusicIcon,
+  PauseBusinessIcon,
+  ProductIcon,
+  ResumeIcon,
+  RevenueIcon,
+  RevenueStatIcon,
+  RivalsIcon,
+  RnDIcon,
+  RocketIcon,
+  ShoutoutIcon,
+  SponsorIcon,
+  StaffIcon,
+  StarIcon,
+  TechIcon,
+  TrophyIcon,
+  TshirtIcon,
+  WarehouseIcon,
+} from "./Icons";
 
-const BUSINESS_TYPES = [
-  { name: "Merch Store", emoji: "👕" },
-  { name: "Music Label", emoji: "🎵" },
-  { name: "Food Brand", emoji: "🍔" },
-  { name: "Tech Startup", emoji: "💻" },
-  { name: "Gaming Cafe", emoji: "🎮" },
-  { name: "Clothing Brand", emoji: "👗" },
-  { name: "Beauty Brand", emoji: "💄" },
-  { name: "Fitness Brand", emoji: "🏋️" },
+const BUSINESS_TYPES: { name: string; icon: React.ReactNode }[] = [
+  {
+    name: "Merch Store",
+    icon: <TshirtIcon style={{ width: 24, height: 24 }} />,
+  },
+  {
+    name: "Music Label",
+    icon: <MusicIcon style={{ width: 24, height: 24 }} />,
+  },
+  { name: "Food Brand", icon: <FoodIcon style={{ width: 24, height: 24 }} /> },
+  {
+    name: "Tech Startup",
+    icon: <TechIcon style={{ width: 24, height: 24 }} />,
+  },
+  {
+    name: "Gaming Cafe",
+    icon: <GamepadIcon style={{ width: 24, height: 24 }} />,
+  },
+  {
+    name: "Clothing Brand",
+    icon: <TshirtIcon style={{ width: 24, height: 24 }} />,
+  },
+  {
+    name: "Beauty Brand",
+    icon: <BeautyIcon style={{ width: 24, height: 24 }} />,
+  },
+  {
+    name: "Fitness Brand",
+    icon: <FitnessIcon style={{ width: 24, height: 24 }} />,
+  },
 ];
 
 const BUSINESS_MILESTONES = [1000, 10000, 100000, 1000000];
@@ -110,7 +170,7 @@ export function BusinessTab({
     const prev = prevCustMilestonesRef.current;
     const newOnes = current.filter((m) => !prev.includes(m));
     for (const m of newOnes) {
-      toast.success(`🎉 ${m.toLocaleString()} customers reached!`, {
+      toast.success(`${m.toLocaleString()} customers reached!`, {
         duration: 3000,
       });
     }
@@ -122,7 +182,7 @@ export function BusinessTab({
     if (!business?.pendingBusinessSponsorship) return;
     const deal = business.pendingBusinessSponsorship;
     if (prevSponsorshipRef.current?.id !== deal.id) {
-      toast(`💼 New sponsorship offer from ${deal.brandName}!`, {
+      toast(`New sponsorship offer from ${deal.brandName}!`, {
         duration: 5000,
       });
       prevSponsorshipRef.current = deal;
@@ -159,7 +219,15 @@ export function BusinessTab({
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "48px", marginBottom: "12px" }}>💼</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "12px",
+            }}
+          >
+            <BusinessIcon style={{ width: 48, height: 48, color: "#fff" }} />
+          </div>
           <h3 style={{ margin: "0 0 8px", fontSize: "22px", fontWeight: 700 }}>
             Start Your Creator Business
           </h3>
@@ -243,8 +311,15 @@ export function BusinessTab({
                   }}
                   data-ocid="business.toggle"
                 >
-                  <div style={{ fontSize: "24px", marginBottom: "6px" }}>
-                    {t.emoji}
+                  <div
+                    style={{
+                      fontSize: "24px",
+                      marginBottom: "6px",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {t.icon}
                   </div>
                   {t.name}
                 </button>
@@ -268,18 +343,23 @@ export function BusinessTab({
               fontSize: "15px",
               fontWeight: 700,
               cursor: bizName.trim() ? "pointer" : "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
             }}
             data-ocid="business.submit_button"
           >
-            🚀 Launch Business
+            <RocketIcon style={{ width: 18, height: 18 }} />
+            Launch Business
           </button>
         </div>
       </div>
     );
   }
 
-  const bizEmoji =
-    BUSINESS_TYPES.find((t) => t.name === business.businessType)?.emoji ?? "💼";
+  const bizIcon = BUSINESS_TYPES.find((t) => t.name === business.businessType)
+    ?.icon ?? <BusinessIcon style={{ width: 28, height: 28, color: "#fff" }} />;
   const revenueBoostActive =
     business.revenueBoostUntil && Date.now() < business.revenueBoostUntil;
   const adBoostActive =
@@ -291,15 +371,44 @@ export function BusinessTab({
   const fame = business.fame ?? 0;
   const popularity = business.popularity ?? 0;
 
-  const tabs: { id: typeof activeTab; label: string; emoji: string }[] = [
-    { id: "overview", label: "Overview", emoji: "📊" },
-    { id: "products", label: "Products", emoji: "📦" },
-    { id: "facilities", label: "Facilities", emoji: "🏢" },
-    { id: "shoutouts", label: "Shoutouts", emoji: "📢" },
-    { id: "reviews", label: "Reviews", emoji: "💬" },
-    { id: "competitors", label: "Rivals", emoji: "🏆" },
-    { id: "drops", label: "Drops", emoji: "🎁" },
-  ];
+  const tabs: { id: typeof activeTab; label: string; icon: React.ReactNode }[] =
+    [
+      {
+        id: "overview",
+        label: "Overview",
+        icon: <AnalyticsIcon style={{ width: 13, height: 13 }} />,
+      },
+      {
+        id: "products",
+        label: "Products",
+        icon: <ProductIcon style={{ width: 13, height: 13 }} />,
+      },
+      {
+        id: "facilities",
+        label: "Facilities",
+        icon: <FacilitiesIcon style={{ width: 13, height: 13 }} />,
+      },
+      {
+        id: "shoutouts",
+        label: "Shoutouts",
+        icon: <ShoutoutIcon style={{ width: 13, height: 13 }} />,
+      },
+      {
+        id: "reviews",
+        label: "Reviews",
+        icon: <StarIcon style={{ width: 13, height: 13 }} />,
+      },
+      {
+        id: "competitors",
+        label: "Rivals",
+        icon: <RivalsIcon style={{ width: 13, height: 13 }} />,
+      },
+      {
+        id: "drops",
+        label: "Drops",
+        icon: <DropIcon style={{ width: 13, height: 13 }} />,
+      },
+    ];
 
   return (
     <div>
@@ -320,7 +429,16 @@ export function BusinessTab({
       >
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "28px" }}>{bizEmoji}</span>
+            <span
+              style={{
+                fontSize: "28px",
+                display: "flex",
+                alignItems: "center",
+                color: "#fff",
+              }}
+            >
+              {bizIcon}
+            </span>
             <div>
               <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
                 {business.name}
@@ -347,9 +465,13 @@ export function BusinessTab({
                 padding: "3px 10px",
                 borderRadius: "20px",
                 fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
             >
-              💚 REVENUE BOOST
+              <RevenueStatIcon style={{ width: 10, height: 10 }} />
+              REVENUE BOOST
             </span>
           )}
           <span
@@ -393,7 +515,9 @@ export function BusinessTab({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "20px" }}>⏸</span>
+            <PauseBusinessIcon
+              style={{ width: 20, height: 20, color: "#e65100" }}
+            />
             <div>
               <div
                 style={{ fontWeight: 700, color: "#e65100", fontSize: "14px" }}
@@ -418,9 +542,13 @@ export function BusinessTab({
               fontWeight: 700,
               fontSize: "13px",
               cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            ▶ Reopen Business
+            <ResumeIcon style={{ width: 14, height: 14 }} />
+            Reopen Business
           </button>
         </div>
       )}
@@ -453,7 +581,8 @@ export function BusinessTab({
               gap: "6px",
             }}
           >
-            ⏸ Pause Business
+            <PauseBusinessIcon style={{ width: 16, height: 16 }} />
+            Pause Business
           </button>
           <button
             type="button"
@@ -473,7 +602,8 @@ export function BusinessTab({
               gap: "6px",
             }}
           >
-            🗑 Delete Business
+            <DeleteIcon style={{ width: 16, height: 16 }} />
+            Delete Business
           </button>
         </div>
       )}
@@ -505,12 +635,13 @@ export function BusinessTab({
           >
             <div
               style={{
-                fontSize: "40px",
+                display: "flex",
+                justifyContent: "center",
                 textAlign: "center",
                 marginBottom: "12px",
               }}
             >
-              🗑
+              <DeleteIcon style={{ width: 40, height: 40, color: "#c62828" }} />
             </div>
             <h3
               style={{
@@ -569,9 +700,14 @@ export function BusinessTab({
                   fontWeight: 700,
                   fontSize: "14px",
                   cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
                 }}
               >
-                🗑 Delete Forever
+                <DeleteIcon style={{ width: 16, height: 16 }} />
+                Delete Forever
               </button>
             </div>
           </div>
@@ -598,18 +734,33 @@ export function BusinessTab({
         >
           <div>
             <div
-              style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}
+              style={{
+                fontWeight: 700,
+                fontSize: "14px",
+                marginBottom: "4px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
             >
-              💼 Sponsorship Offer:{" "}
-              {business.pendingBusinessSponsorship.brandName}
+              <SponsorIcon style={{ width: 16, height: 16 }} />
+              Sponsorship Offer: {business.pendingBusinessSponsorship.brandName}
             </div>
             <div
               style={{ fontSize: "12px", opacity: 0.9, marginBottom: "4px" }}
             >
               {business.pendingBusinessSponsorship.description}
             </div>
-            <div style={{ fontSize: "13px", fontWeight: 700 }}>
-              💰 $
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              <RevenueIcon style={{ width: 14, height: 14 }} />$
               {business.pendingBusinessSponsorship.dealAmount.toLocaleString()}{" "}
               + 60s Revenue Boost
             </div>
@@ -620,7 +771,7 @@ export function BusinessTab({
               onClick={() => {
                 onAcceptBusinessSponsorship();
                 toast.success(
-                  `✅ Accepted deal from ${business.pendingBusinessSponsorship?.brandName}! +$${business.pendingBusinessSponsorship?.dealAmount.toLocaleString()}`,
+                  `Accepted deal from ${business.pendingBusinessSponsorship?.brandName}! +$${business.pendingBusinessSponsorship?.dealAmount.toLocaleString()}`,
                 );
               }}
               style={{
@@ -632,17 +783,20 @@ export function BusinessTab({
                 fontSize: "13px",
                 fontWeight: 700,
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
               data-ocid="business.sponsorship.confirm_button"
             >
-              ✅ Accept
+              <CheckIcon style={{ width: 14, height: 14 }} /> Accept
             </button>
             <button
               type="button"
               onClick={() => {
                 onDeclineBusinessSponsorship();
                 toast(
-                  `❌ Declined deal from ${business.pendingBusinessSponsorship?.brandName}`,
+                  `Declined deal from ${business.pendingBusinessSponsorship?.brandName}`,
                 );
               }}
               style={{
@@ -654,10 +808,13 @@ export function BusinessTab({
                 fontSize: "13px",
                 fontWeight: 700,
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
               data-ocid="business.sponsorship.cancel_button"
             >
-              ✖ Decline
+              <CloseIcon style={{ width: 14, height: 14 }} /> Decline
             </button>
           </div>
         </div>
@@ -694,10 +851,14 @@ export function BusinessTab({
               boxShadow:
                 activeTab === t.id ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
               transition: "all 0.15s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "4px",
             }}
             data-ocid={`business.${t.id}.tab`}
           >
-            {t.emoji} {t.label}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>
@@ -718,43 +879,43 @@ export function BusinessTab({
                 label: "Revenue",
                 value: `$${business.revenue.toLocaleString()}`,
                 color: "#2e7d32",
-                emoji: "💰",
+                icon: <RevenueIcon style={{ width: 22, height: 22 }} />,
               },
               {
                 label: "Customers",
                 value: business.customers.toLocaleString(),
                 color: "#6a1b9a",
-                emoji: "👥",
+                icon: <CustomerIcon style={{ width: 22, height: 22 }} />,
               },
               {
                 label: "Brand Value",
                 value: `$${brandValue.toLocaleString()}`,
                 color: "#1565c0",
-                emoji: "🏅",
+                icon: <BrandIcon style={{ width: 22, height: 22 }} />,
               },
               {
                 label: "Fame",
                 value: fame.toLocaleString(),
                 color: "#e65100",
-                emoji: "⭐",
+                icon: <FameIcon style={{ width: 22, height: 22 }} />,
               },
               {
                 label: "Popularity",
                 value: popularity.toLocaleString(),
                 color: "#c62828",
-                emoji: "🔥",
+                icon: <StarIcon style={{ width: 22, height: 22 }} />,
               },
               {
                 label: "Staff",
                 value: staffCount.toString(),
                 color: "#00695c",
-                emoji: "👔",
+                icon: <StaffIcon style={{ width: 22, height: 22 }} />,
               },
               {
                 label: "Branches",
                 value: branchCount.toString(),
                 color: "#4527a0",
-                emoji: "🏢",
+                icon: <BranchIcon style={{ width: 22, height: 22 }} />,
               },
             ].map((s) => (
               <div
@@ -767,8 +928,15 @@ export function BusinessTab({
                   textAlign: "center",
                 }}
               >
-                <div style={{ fontSize: "22px", marginBottom: "4px" }}>
-                  {s.emoji}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginBottom: "4px",
+                    color: s.color,
+                  }}
+                >
+                  {s.icon}
                 </div>
                 <div
                   style={{ fontSize: "17px", fontWeight: 700, color: s.color }}
@@ -791,9 +959,15 @@ export function BusinessTab({
                 fontWeight: 700,
                 color: "#333",
                 marginBottom: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              📈 Revenue Milestones
+              <RevenueStatIcon
+                style={{ width: 14, height: 14, color: "#cc0000" }}
+              />
+              Revenue Milestones
             </div>
             {BUSINESS_MILESTONES.map((m) => {
               const reached =
@@ -826,9 +1000,21 @@ export function BusinessTab({
                         fontSize: "13px",
                         fontWeight: 600,
                         color: reached ? "#2e7d32" : "#555",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
                       }}
                     >
-                      {reached ? "🏆" : "🔒"} ${m.toLocaleString()} Revenue
+                      {reached ? (
+                        <TrophyIcon
+                          style={{ width: 14, height: 14, color: "#ffd700" }}
+                        />
+                      ) : (
+                        <RevenueIcon
+                          style={{ width: 14, height: 14, color: "#aaa" }}
+                        />
+                      )}
+                      ${m.toLocaleString()} Revenue
                     </span>
                     <span
                       style={{
@@ -873,9 +1059,15 @@ export function BusinessTab({
                 fontWeight: 700,
                 color: "#333",
                 marginBottom: "12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              👥 Customer Milestones
+              <CustomerIcon
+                style={{ width: 14, height: 14, color: "#cc0000" }}
+              />
+              Customer Milestones
             </div>
             {[1000, 10000, 100000].map((m) => {
               const reached =
@@ -910,9 +1102,21 @@ export function BusinessTab({
                         fontSize: "13px",
                         fontWeight: 600,
                         color: reached ? "#2e7d32" : "#555",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
                       }}
                     >
-                      {reached ? "🏆" : "🔒"} {m.toLocaleString()} Customers
+                      {reached ? (
+                        <TrophyIcon
+                          style={{ width: 14, height: 14, color: "#ffd700" }}
+                        />
+                      ) : (
+                        <CustomerIcon
+                          style={{ width: 14, height: 14, color: "#aaa" }}
+                        />
+                      )}
+                      {m.toLocaleString()} Customers
                     </span>
                     <span
                       style={{
@@ -966,12 +1170,24 @@ export function BusinessTab({
                 fontSize: "13px",
                 fontWeight: 700,
                 cursor: revenueBoostActive ? "default" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
               }}
               data-ocid="business.primary_button"
             >
-              {revenueBoostActive
-                ? "✅ Promotion Active"
-                : "📣 Promote on YouTube"}
+              {revenueBoostActive ? (
+                <>
+                  <CheckIcon style={{ width: 14, height: 14 }} />
+                  Promotion Active
+                </>
+              ) : (
+                <>
+                  <ShoutoutIcon style={{ width: 14, height: 14 }} />
+                  Promote on YouTube
+                </>
+              )}
             </button>
             <button
               type="button"
@@ -993,10 +1209,24 @@ export function BusinessTab({
                 fontWeight: 700,
                 cursor:
                   coins < 1000 || !!adBoostActive ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
               }}
               data-ocid="business.secondary_button"
             >
-              {adBoostActive ? "📢 Ads Running" : "🎯 Run Ads (1000 coins)"}
+              {adBoostActive ? (
+                <>
+                  <AdsIcon style={{ width: 14, height: 14 }} />
+                  Ads Running
+                </>
+              ) : (
+                <>
+                  <AdsIcon style={{ width: 14, height: 14 }} />
+                  Run Ads (1000 coins)
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -1013,8 +1243,20 @@ export function BusinessTab({
               marginBottom: "16px",
             }}
           >
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "#333" }}>
-              📦 Products ({products.length})
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 700,
+                color: "#333",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <ProductIcon
+                style={{ width: 16, height: 16, color: "#1a237e" }}
+              />
+              Products ({products.length})
             </div>
             <button
               type="button"
@@ -1031,7 +1273,7 @@ export function BusinessTab({
               }}
               data-ocid="business.open_modal_button"
             >
-              {showProductForm ? "✕ Cancel" : "+ New Product"}
+              {showProductForm ? "Cancel" : "+ New Product"}
             </button>
           </div>
 
@@ -1054,7 +1296,7 @@ export function BusinessTab({
                   marginBottom: "14px",
                 }}
               >
-                🆕 Create New Product
+                Create New Product
               </div>
               <div style={{ marginBottom: "12px" }}>
                 <label
@@ -1176,10 +1418,13 @@ export function BusinessTab({
                   fontSize: "13px",
                   fontWeight: 700,
                   cursor: productName.trim() ? "pointer" : "not-allowed",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
                 data-ocid="business.submit_button"
               >
-                ✅ Create Product
+                <CheckIcon style={{ width: 14, height: 14 }} /> Create Product
               </button>
             </div>
           )}
@@ -1196,7 +1441,15 @@ export function BusinessTab({
               }}
               data-ocid="business.empty_state"
             >
-              <div style={{ fontSize: "36px", marginBottom: "10px" }}>📦</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: "10px",
+                }}
+              >
+                <ProductIcon style={{ width: 36, height: 36, color: "#ccc" }} />
+              </div>
               <div
                 style={{
                   fontSize: "14px",
@@ -1272,9 +1525,18 @@ export function BusinessTab({
                                 color: "#f9a825",
                                 marginTop: "3px",
                                 fontWeight: 600,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "3px",
                               }}
                             >
-                              ⭐{" "}
+                              <StarIcon
+                                style={{
+                                  width: 11,
+                                  height: 11,
+                                  color: "#f9a825",
+                                }}
+                              />
                               {(
                                 (product.customerReviews ?? []).reduce(
                                   (s, r) => s + r.rating,
@@ -1312,7 +1574,22 @@ export function BusinessTab({
                             marginBottom: "4px",
                           }}
                         >
-                          <span>⭐ Fame</span>
+                          <span
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "3px",
+                            }}
+                          >
+                            <FameIcon
+                              style={{
+                                width: 11,
+                                height: 11,
+                                color: "#f9a825",
+                              }}
+                            />
+                            Fame
+                          </span>
                           <span>{product.fame.toLocaleString()} / 10,000</span>
                         </div>
                         <div
@@ -1343,9 +1620,26 @@ export function BusinessTab({
                             color: "#666",
                           }}
                         >
-                          <span>📢 {product.shoutouts} shoutouts</span>
-                          <span>
-                            💰 ~${(product.fame * 2).toLocaleString()} revenue
+                          <span
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "3px",
+                            }}
+                          >
+                            <ShoutoutIcon style={{ width: 11, height: 11 }} />
+                            {product.shoutouts} shoutouts
+                          </span>
+                          <span
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "3px",
+                            }}
+                          >
+                            <RevenueIcon style={{ width: 11, height: 11 }} />
+                            ~$
+                            {(product.fame * 2).toLocaleString()} revenue
                           </span>
                         </div>
                       </div>
@@ -1368,7 +1662,7 @@ export function BusinessTab({
                         }}
                         data-ocid={`business.review.button.${idx + 1}`}
                       >
-                        🔍 Send for Review
+                        Send for Review
                       </button>
                     )}
 
@@ -1389,7 +1683,7 @@ export function BusinessTab({
                             marginBottom: "10px",
                           }}
                         >
-                          📝 Write Your Review
+                          Write Your Review
                         </div>
                         <textarea
                           value={reviewTexts[product.id] ?? ""}
@@ -1436,10 +1730,14 @@ export function BusinessTab({
                             fontSize: "12px",
                             fontWeight: 700,
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
                           }}
                           data-ocid={`business.approve.button.${idx + 1}`}
                         >
-                          ✅ Approve & Ready to Launch
+                          <CheckIcon style={{ width: 13, height: 13 }} />
+                          Approve &amp; Ready to Launch
                         </button>
                       </div>
                     )}
@@ -1458,7 +1756,7 @@ export function BusinessTab({
                               marginBottom: "10px",
                             }}
                           >
-                            💬 Review: {product.reviewText}
+                            Review: {product.reviewText}
                           </div>
                         )}
                         <button
@@ -1474,10 +1772,14 @@ export function BusinessTab({
                             fontSize: "13px",
                             fontWeight: 700,
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
                           }}
                           data-ocid={`business.launch.button.${idx + 1}`}
                         >
-                          🚀 Official Launch
+                          <RocketIcon style={{ width: 15, height: 15 }} />
+                          Official Launch
                         </button>
                       </div>
                     )}
@@ -1506,10 +1808,14 @@ export function BusinessTab({
                           fontSize: "12px",
                           fontWeight: 700,
                           cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
                         }}
                         data-ocid={`business.shoutout.button.${idx + 1}`}
                       >
-                        📢 Shoutout on Channel
+                        <ShoutoutIcon style={{ width: 14, height: 14 }} />
+                        Shoutout on Channel
                       </button>
                     )}
                   </div>
@@ -1535,7 +1841,7 @@ export function BusinessTab({
               marginBottom: "20px",
             }}
           >
-            <span style={{ fontSize: "20px" }}>🪙</span>
+            <CoinIcon style={{ width: 20, height: 20, color: "#e65100" }} />
             <span
               style={{ fontSize: "14px", fontWeight: 700, color: "#e65100" }}
             >
@@ -1549,7 +1855,7 @@ export function BusinessTab({
             {[
               {
                 title: "Hire Staff",
-                emoji: "👔",
+                icon: <StaffIcon style={{ width: 28, height: 28 }} />,
                 cost: 2000,
                 desc: "Each staff member increases daily revenue by 10%",
                 stat: `Current: ${staffCount} staff`,
@@ -1561,7 +1867,7 @@ export function BusinessTab({
               },
               {
                 title: "Open New Branch",
-                emoji: "🏢",
+                icon: <BranchIcon style={{ width: 28, height: 28 }} />,
                 cost: 5000,
                 desc: "Each branch adds 100K reach and 1,000 customers",
                 stat: `Current: ${branchCount} branch${branchCount !== 1 ? "es" : ""} `,
@@ -1573,12 +1879,10 @@ export function BusinessTab({
               },
               {
                 title: "Run Ads",
-                emoji: "🎯",
+                icon: <AdsIcon style={{ width: 28, height: 28 }} />,
                 cost: 1000,
                 desc: "Boosts reach by 50K for 1 hour",
-                stat: adBoostActive
-                  ? "✅ Ads currently running!"
-                  : "Not running",
+                stat: adBoostActive ? "Ads currently running!" : "Not running",
                 color: "#1565c0",
                 onClick: onRunAds,
                 canAfford: coins >= 1000 && !adBoostActive,
@@ -1587,12 +1891,10 @@ export function BusinessTab({
               },
               {
                 title: "Promote on YouTube",
-                emoji: "📣",
+                icon: <ShoutoutIcon style={{ width: 28, height: 28 }} />,
                 cost: 0,
                 desc: "Free boost — increases revenue for 24 hours",
-                stat: revenueBoostActive
-                  ? "✅ Promotion active!"
-                  : "Ready to use",
+                stat: revenueBoostActive ? "Promotion active!" : "Ready to use",
                 color: "#c62828",
                 onClick: onPromote,
                 canAfford: !revenueBoostActive,
@@ -1619,7 +1921,7 @@ export function BusinessTab({
                 <div
                   style={{ display: "flex", gap: "14px", alignItems: "center" }}
                 >
-                  <span style={{ fontSize: "28px" }}>{f.emoji}</span>
+                  <span style={{ color: f.color }}>{f.icon}</span>
                   <div>
                     <div
                       style={{
@@ -1682,9 +1984,13 @@ export function BusinessTab({
                 marginBottom: "12px",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              🏗 Facility Upgrades
+              <FacilitiesIcon style={{ width: 14, height: 14 }} />
+              Facility Upgrades
             </div>
             <div
               style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -1693,7 +1999,7 @@ export function BusinessTab({
                 {
                   id: "marketing_team",
                   title: "Marketing Team",
-                  emoji: "📣",
+                  icon: <MarketingIcon style={{ width: 28, height: 28 }} />,
                   cost: 3000,
                   desc: "Passively boosts product fame by +5 per tick",
                   color: "#1565c0",
@@ -1701,7 +2007,7 @@ export function BusinessTab({
                 {
                   id: "rd_lab",
                   title: "R&D Lab",
-                  emoji: "🔬",
+                  icon: <RnDIcon style={{ width: 28, height: 28 }} />,
                   cost: 4000,
                   desc: "Unlocks Premium product tier badge when creating products",
                   color: "#6a1b9a",
@@ -1709,7 +2015,7 @@ export function BusinessTab({
                 {
                   id: "warehouse",
                   title: "Warehouse",
-                  emoji: "🏭",
+                  icon: <WarehouseIcon style={{ width: 28, height: 28 }} />,
                   cost: 2500,
                   desc: "Increases max product drop stock by +50%",
                   color: "#e65100",
@@ -1717,7 +2023,9 @@ export function BusinessTab({
                 {
                   id: "customer_service",
                   title: "Customer Service",
-                  emoji: "🎧",
+                  icon: (
+                    <CustomerServiceIcon style={{ width: 28, height: 28 }} />
+                  ),
                   cost: 2000,
                   desc: "Reduces negative reviews and adds +0.3 to avg star rating",
                   color: "#00695c",
@@ -1725,7 +2033,7 @@ export function BusinessTab({
                 {
                   id: "social_media_manager",
                   title: "Social Media Manager",
-                  emoji: "📱",
+                  icon: <ShoutoutIcon style={{ width: 28, height: 28 }} />,
                   cost: 3500,
                   desc: "Auto-shouts out a random product every 3 minutes",
                   color: "#c62828",
@@ -1733,7 +2041,7 @@ export function BusinessTab({
                 {
                   id: "flagship_store",
                   title: "Flagship Store",
-                  emoji: "🏬",
+                  icon: <FlagshipIcon style={{ width: 28, height: 28 }} />,
                   cost: 8000,
                   desc: "Adds +5,000 customers and +20% to all revenue ticks",
                   color: "#1a237e",
@@ -1763,7 +2071,7 @@ export function BusinessTab({
                         alignItems: "center",
                       }}
                     >
-                      <span style={{ fontSize: "28px" }}>{f.emoji}</span>
+                      <span style={{ color: f.color }}>{f.icon}</span>
                       <div>
                         <div
                           style={{
@@ -1784,7 +2092,7 @@ export function BusinessTab({
                                 marginLeft: "4px",
                               }}
                             >
-                              ✓ OWNED
+                              OWNED
                             </span>
                           )}
                         </div>
@@ -1840,9 +2148,13 @@ export function BusinessTab({
                 fontWeight: 700,
                 color: "#333",
                 marginBottom: "14px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              ⚡ Quick Shoutout
+              <DropIcon style={{ width: 14, height: 14, color: "#cc0000" }} />
+              Quick Shoutout
             </div>
             {products.filter((p) => p.status === "launched").length === 0 ? (
               <div
@@ -1887,10 +2199,14 @@ export function BusinessTab({
                         fontSize: "12px",
                         fontWeight: 700,
                         cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
                       }}
                       data-ocid={`business.quick_shoutout.button.${idx + 1}`}
                     >
-                      📢 {product.name}
+                      <ShoutoutIcon style={{ width: 13, height: 13 }} />
+                      {product.name}
                     </button>
                   ))}
               </div>
@@ -1906,7 +2222,7 @@ export function BusinessTab({
                 marginBottom: "12px",
               }}
             >
-              📜 Shoutout History
+              Shoutout History
             </div>
             {shoutoutLog.length === 0 ? (
               <div
@@ -1920,7 +2236,17 @@ export function BusinessTab({
                 }}
                 data-ocid="business.shoutouts.empty_state"
               >
-                <div style={{ fontSize: "32px", marginBottom: "8px" }}>📢</div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <ShoutoutIcon
+                    style={{ width: 32, height: 32, color: "#ccc" }}
+                  />
+                </div>
                 <div style={{ fontWeight: 600, marginBottom: "4px" }}>
                   No shoutouts yet!
                 </div>
@@ -1952,9 +2278,13 @@ export function BusinessTab({
                           fontSize: "13px",
                           fontWeight: 700,
                           color: "#e65100",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
                         }}
                       >
-                        📢 {log.productName}
+                        <ShoutoutIcon style={{ width: 13, height: 13 }} />
+                        {log.productName}
                       </span>
                       <span
                         style={{
@@ -1985,9 +2315,15 @@ export function BusinessTab({
                   fontWeight: 700,
                   color: "#333",
                   marginBottom: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
                 }}
               >
-                📊 Product Fame Stats
+                <AnalyticsIcon
+                  style={{ width: 14, height: 14, color: "#cc0000" }}
+                />
+                Product Fame Stats
               </div>
               {products
                 .filter((p) => p.shoutouts > 0)
@@ -2017,8 +2353,28 @@ export function BusinessTab({
                         color: "#555",
                       }}
                     >
-                      <span>📢 {product.shoutouts}x</span>
-                      <span>⭐ {product.fame.toLocaleString()} fame</span>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "3px",
+                        }}
+                      >
+                        <ShoutoutIcon style={{ width: 12, height: 12 }} />
+                        {product.shoutouts}x
+                      </span>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "3px",
+                        }}
+                      >
+                        <FameIcon
+                          style={{ width: 12, height: 12, color: "#f9a825" }}
+                        />
+                        {product.fame.toLocaleString()} fame
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -2036,9 +2392,13 @@ export function BusinessTab({
               fontWeight: 700,
               color: "#333",
               marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            💬 Customer Reviews
+            <StarIcon style={{ width: 16, height: 16, color: "#f9a825" }} />
+            Customer Reviews
           </div>
           {(business.products ?? []).filter((p) => p.status === "launched")
             .length === 0 ? (
@@ -2092,10 +2452,25 @@ export function BusinessTab({
                             fontSize: "13px",
                             color: "#f9a825",
                             fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px",
                           }}
                         >
-                          {"⭐".repeat(Math.round(Number(avg)))} {avg} (
-                          {reviews.length} reviews)
+                          {"★"
+                            .repeat(Math.round(Number(avg)))
+                            .split("")
+                            .map((_, pos) => (
+                              <StarIcon
+                                key={`avg-star-pos-${pos}-of-${Math.round(Number(avg))}`}
+                                style={{
+                                  width: 12,
+                                  height: 12,
+                                  color: "#f9a825",
+                                }}
+                              />
+                            ))}{" "}
+                          {avg} ({reviews.length} reviews)
                         </span>
                       ) : (
                         <span style={{ fontSize: "12px", color: "#999" }}>
@@ -2143,9 +2518,24 @@ export function BusinessTab({
                                   fontSize: "13px",
                                   color: "#f9a825",
                                   whiteSpace: "nowrap",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "1px",
                                 }}
                               >
-                                {"⭐".repeat(r.rating)}
+                                {"★"
+                                  .repeat(r.rating)
+                                  .split("")
+                                  .map((_, si) => (
+                                    <StarIcon
+                                      key={`review-${r.id}-star-${si}`}
+                                      style={{
+                                        width: 12,
+                                        height: 12,
+                                        color: "#f9a825",
+                                      }}
+                                    />
+                                  ))}
                               </span>
                               <span
                                 style={{
@@ -2176,11 +2566,14 @@ export function BusinessTab({
               fontWeight: 700,
               color: "#333",
               marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            🏆 Business Rivals — Beat them to rank #1!
+            <RivalsIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+            Business Rivals — Beat them to rank #1!
           </div>
-          {/* Player row */}
           {(() => {
             const allEntries: Array<{
               name: string;
@@ -2250,13 +2643,22 @@ export function BusinessTab({
                         flexShrink: 0,
                       }}
                     >
-                      {idx === 0
-                        ? "🥇"
-                        : idx === 1
-                          ? "🥈"
-                          : idx === 2
-                            ? "🥉"
-                            : `#${idx + 1}`}
+                      {idx < 3 ? (
+                        <TrophyIcon
+                          style={{
+                            width: 16,
+                            height: 16,
+                            color:
+                              idx === 0
+                                ? "#8b6914"
+                                : idx === 1
+                                  ? "#555"
+                                  : "#7d3c0a",
+                          }}
+                        />
+                      ) : (
+                        `#${idx + 1}`
+                      )}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
@@ -2290,10 +2692,33 @@ export function BusinessTab({
                           fontSize: "11px",
                           color: "#777",
                           marginTop: "2px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
                         }}
                       >
-                        👥 {entry.customers.toLocaleString()} customers · ⭐{" "}
-                        {entry.fame.toLocaleString()} fame
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "2px",
+                          }}
+                        >
+                          <CustomerIcon style={{ width: 11, height: 11 }} />
+                          {entry.customers.toLocaleString()} customers
+                        </span>
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "2px",
+                          }}
+                        >
+                          <FameIcon
+                            style={{ width: 11, height: 11, color: "#f9a825" }}
+                          />
+                          {entry.fame.toLocaleString()} fame
+                        </span>
                       </div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -2327,9 +2752,13 @@ export function BusinessTab({
               fontWeight: 700,
               color: "#333",
               marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            🎁 Product Drops — Launch a limited-time drop and promote it before
+            <DropIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+            Product Drops — Launch a limited-time drop and promote it before
             time runs out!
           </div>
 
@@ -2362,9 +2791,13 @@ export function BusinessTab({
                         fontSize: "18px",
                         fontWeight: 700,
                         marginBottom: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
                       }}
                     >
-                      🎁 {business.activeProductDrop.name}
+                      <DropIcon style={{ width: 18, height: 18 }} />
+                      {business.activeProductDrop.name}
                     </div>
                     <div style={{ fontSize: "12px", opacity: 0.8 }}>
                       Limited-time product drop — promote before it ends!
@@ -2380,7 +2813,7 @@ export function BusinessTab({
                     >
                       {dropTimer > 0
                         ? `${Math.floor(dropTimer / 1000)}s`
-                        : "⏰"}
+                        : "..."}
                     </div>
                     <div style={{ fontSize: "10px", opacity: 0.8 }}>
                       remaining
@@ -2397,9 +2830,14 @@ export function BusinessTab({
                         fontSize: "13px",
                         fontWeight: 700,
                         textAlign: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
                       }}
                     >
-                      ✅ Promoted! Waiting for drop to end for viral spike...
+                      <CheckIcon style={{ width: 14, height: 14 }} />
+                      Promoted! Waiting for drop to end for viral spike...
                     </div>
                   ) : (
                     <button
@@ -2415,10 +2853,15 @@ export function BusinessTab({
                         fontSize: "14px",
                         fontWeight: 700,
                         cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
                       }}
                       data-ocid="business.drops.primary_button"
                     >
-                      📣 Promote Now! (Boost Fame + Customers)
+                      <ShoutoutIcon style={{ width: 16, height: 16 }} />
+                      Promote Now! (Boost Fame + Customers)
                     </button>
                   )}
                 </div>
@@ -2441,12 +2884,25 @@ export function BusinessTab({
                   ? "#2e7d32"
                   : "#c62828",
                 fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
               data-ocid="business.drops.success_state"
             >
-              {business.activeProductDrop.promoted
-                ? `🚀 "${business.activeProductDrop.name}" drop succeeded! Big sales spike received.`
-                : `❌ "${business.activeProductDrop.name}" drop failed — not promoted in time.`}
+              {business.activeProductDrop.promoted ? (
+                <>
+                  <RocketIcon style={{ width: 14, height: 14 }} />
+                  &ldquo;{business.activeProductDrop.name}&rdquo; drop
+                  succeeded! Big sales spike received.
+                </>
+              ) : (
+                <>
+                  <CloseIcon style={{ width: 14, height: 14 }} />
+                  &ldquo;{business.activeProductDrop.name}&rdquo; drop failed —
+                  not promoted in time.
+                </>
+              )}
             </div>
           )}
 
@@ -2467,9 +2923,13 @@ export function BusinessTab({
                   fontWeight: 700,
                   color: "#4a148c",
                   marginBottom: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                🎁 Create New Product Drop
+                <DropIcon style={{ width: 14, height: 14 }} />
+                Create New Product Drop
               </div>
               <input
                 type="text"
@@ -2495,7 +2955,7 @@ export function BusinessTab({
                   marginBottom: "12px",
                 }}
               >
-                ⏱ 90 second countdown — promote at least once to trigger a viral
+                90 second countdown — promote at least once to trigger a viral
                 sales spike!
               </div>
               <button
@@ -2504,9 +2964,7 @@ export function BusinessTab({
                   if (!dropName.trim()) return;
                   onCreateProductDrop(dropName.trim());
                   setDropName("");
-                  toast(
-                    "🎁 Product drop started! Promote before time runs out!",
-                  );
+                  toast("Product drop started! Promote before time runs out!");
                 }}
                 disabled={!dropName.trim()}
                 style={{
@@ -2519,10 +2977,15 @@ export function BusinessTab({
                   fontSize: "14px",
                   fontWeight: 700,
                   cursor: dropName.trim() ? "pointer" : "not-allowed",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
                 }}
                 data-ocid="business.drops.submit_button"
               >
-                🚀 Start Drop (90s Countdown)
+                <RocketIcon style={{ width: 16, height: 16 }} />
+                Start Drop (90s Countdown)
               </button>
             </div>
           )}

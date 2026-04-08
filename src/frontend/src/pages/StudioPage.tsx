@@ -4,6 +4,29 @@ import type { Page } from "../App";
 import { AchievementPanel } from "../components/AchievementPanel";
 import AnimatedNumber from "../components/AnimatedNumber";
 import { BusinessTab } from "../components/BusinessTab";
+import {
+  AnalyticsIcon,
+  BusinessIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClaimsIcon,
+  CloseIcon,
+  CoinIcon,
+  CollabIcon,
+  DangerIcon,
+  DeleteIcon,
+  EditIcon,
+  GoalsIcon,
+  ModIcon,
+  PinIcon,
+  ProgressIcon,
+  RevenueIcon,
+  TrophyIcon,
+  VideoListIcon,
+  ViewerIcon,
+  WarningIcon,
+} from "../components/Icons";
 import { XPBar } from "../components/XPBar";
 import { formatViews } from "../data/mockVideos";
 import { useGame } from "../store/gameStore";
@@ -50,9 +73,13 @@ function AnalyticsTab({
           fontWeight: "bold",
           color: "#333",
           margin: "0 0 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
         }}
       >
-        📊 Channel Analytics Overview
+        <AnalyticsIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+        Channel Analytics Overview
       </h3>
 
       {/* 7-day bar chart */}
@@ -236,9 +263,13 @@ function AnalyticsTab({
                   color: "#2e7d32",
                   fontWeight: "bold",
                   marginBottom: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
                 }}
               >
-                📈 Best Performer
+                <AnalyticsIcon style={{ width: 12, height: 12 }} />
+                Best Performer
               </div>
               <div
                 style={{ fontSize: "11px", color: "#333", fontWeight: "bold" }}
@@ -269,7 +300,7 @@ function AnalyticsTab({
                   marginBottom: "4px",
                 }}
               >
-                📉 Needs Work
+                Needs Work
               </div>
               <div
                 style={{ fontSize: "11px", color: "#333", fontWeight: "bold" }}
@@ -300,14 +331,14 @@ function RevenueTab({
     ? Math.min(100, (earnings / nextMilestone) * 100)
     : 100;
 
-  const AWARD_BADGES: Record<number, { emoji: string; color: string }> = {
-    100: { emoji: "🥉", color: "#9e9e9e" },
-    500: { emoji: "🥈", color: "#cd7f32" },
-    1000: { emoji: "🥇", color: "#ffd700" },
-    5000: { emoji: "💰", color: "#4caf50" },
-    10000: { emoji: "📈", color: "#2196f3" },
-    50000: { emoji: "💎", color: "#9c27b0" },
-    100000: { emoji: "🏆", color: "#cc0000" },
+  const AWARD_BADGES: Record<number, { label: string; color: string }> = {
+    100: { label: "Bronze", color: "#9e9e9e" },
+    500: { label: "Silver", color: "#cd7f32" },
+    1000: { label: "Gold", color: "#ffd700" },
+    5000: { label: "Platinum", color: "#4caf50" },
+    10000: { label: "Diamond", color: "#2196f3" },
+    50000: { label: "Elite", color: "#9c27b0" },
+    100000: { label: "Legend", color: "#cc0000" },
   };
 
   return (
@@ -318,9 +349,13 @@ function RevenueTab({
           fontWeight: "bold",
           color: "#333",
           margin: "0 0 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
         }}
       >
-        💰 Revenue Milestones
+        <RevenueIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+        Revenue Milestones
       </h3>
 
       {/* Total earnings */}
@@ -430,8 +465,20 @@ function RevenueTab({
                 opacity: reached ? 1 : 0.5,
               }}
             >
-              <div style={{ fontSize: "24px", marginBottom: "4px" }}>
-                {badge?.emoji ?? "💰"}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: "4px",
+                }}
+              >
+                <TrophyIcon
+                  style={{
+                    width: 24,
+                    height: 24,
+                    color: reached ? badge?.color : "#aaa",
+                  }}
+                />
               </div>
               <div
                 style={{
@@ -447,9 +494,19 @@ function RevenueTab({
                   fontSize: "10px",
                   color: reached ? "#2e7d32" : "#bbb",
                   marginTop: "2px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "3px",
                 }}
               >
-                {reached ? "✓ Unlocked" : "🔒 Locked"}
+                {reached ? (
+                  <>
+                    <CheckIcon style={{ width: 10, height: 10 }} /> Unlocked
+                  </>
+                ) : (
+                  "Locked"
+                )}
               </div>
             </div>
           );
@@ -467,7 +524,7 @@ function CollaborationsTab() {
     const subBoost = Math.floor(500 + (subs / 5000000) * 4500);
     resolveCollabRequest(id, true, subBoost);
     addNotification(
-      `🤝 Collab with ${creatorName} accepted! +${subBoost.toLocaleString()} subscribers!`,
+      `Collab with ${creatorName} accepted! +${subBoost.toLocaleString()} subscribers!`,
       "milestone",
     );
     toast.success(`Collab accepted! +${subBoost.toLocaleString()} subs!`);
@@ -489,9 +546,13 @@ function CollaborationsTab() {
           fontWeight: "bold",
           color: "#333",
           margin: "0 0 4px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
         }}
       >
-        🤝 Collaboration Requests
+        <CollabIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+        Collaboration Requests
       </h3>
       <p style={{ fontSize: "11px", color: "#888", margin: "0 0 16px" }}>
         Other creators want to collaborate with you! New requests appear every
@@ -510,7 +571,15 @@ function CollaborationsTab() {
           }}
           data-ocid="studio.empty_state"
         >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>🤝</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <CollabIcon style={{ width: 32, height: 32, color: "#ccc" }} />
+          </div>
           <div style={{ fontSize: "12px", color: "#888" }}>
             No pending requests. Check back soon!
           </div>
@@ -568,10 +637,13 @@ function CollaborationsTab() {
                 fontSize: "12px",
                 color: "#fff",
                 fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
               data-ocid="studio.confirm_button"
             >
-              ✔ Accept
+              <CheckIcon style={{ width: 12, height: 12 }} /> Accept
             </button>
             <button
               type="button"
@@ -584,10 +656,13 @@ function CollaborationsTab() {
                 cursor: "pointer",
                 fontSize: "12px",
                 color: "#555",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
               data-ocid="studio.cancel_button"
             >
-              ✖ Decline
+              <CloseIcon style={{ width: 12, height: 12 }} /> Decline
             </button>
           </div>
         </div>
@@ -624,9 +699,20 @@ function CollaborationsTab() {
                 style={{
                   color: req.status === "accepted" ? "#2e7d32" : "#999",
                   fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "3px",
                 }}
               >
-                {req.status === "accepted" ? "✔ Accepted" : "✖ Declined"}
+                {req.status === "accepted" ? (
+                  <>
+                    <CheckIcon style={{ width: 11, height: 11 }} /> Accepted
+                  </>
+                ) : (
+                  <>
+                    <CloseIcon style={{ width: 11, height: 11 }} /> Declined
+                  </>
+                )}
               </span>
             </div>
           ))}
@@ -663,7 +749,7 @@ function CopyrightTab({
             gap: "8px",
           }}
         >
-          <span style={{ fontSize: "20px" }}>⚠️</span>
+          <WarningIcon style={{ width: 20, height: 20, color: "#c62828" }} />
           <div>
             <div
               style={{ fontWeight: "bold", fontSize: "13px", color: "#c62828" }}
@@ -684,9 +770,13 @@ function CopyrightTab({
           fontWeight: "bold",
           color: "#333",
           margin: "0 0 4px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
         }}
       >
-        ©️ Content ID / Copyright Claims
+        <ClaimsIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+        Content ID / Copyright Claims
       </h3>
       <p style={{ fontSize: "11px", color: "#888", margin: "0 0 16px" }}>
         Copyright claims appear periodically. Dispute to contest, or acknowledge
@@ -704,7 +794,15 @@ function CopyrightTab({
           }}
           data-ocid="studio.empty_state"
         >
-          <div style={{ fontSize: "32px", marginBottom: "8px" }}>✅</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <CheckIcon style={{ width: 32, height: 32, color: "#2e7d32" }} />
+          </div>
           <div style={{ fontSize: "12px", color: "#888" }}>
             No copyright claims. Keep it up!
           </div>
@@ -723,7 +821,7 @@ function CopyrightTab({
           active: "Active",
           disputed: "Disputed • Resolving...",
           resolved: "Resolved",
-          strikeApplied: "⛔ Strike Applied",
+          strikeApplied: "Strike Applied",
         };
         return (
           <div
@@ -797,7 +895,7 @@ function CopyrightTab({
                   }}
                   data-ocid="studio.secondary_button"
                 >
-                  ⚖️ Dispute
+                  Dispute
                 </button>
                 <button
                   type="button"
@@ -813,10 +911,13 @@ function CopyrightTab({
                     cursor: "pointer",
                     fontSize: "11px",
                     color: "#555",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px",
                   }}
                   data-ocid="studio.confirm_button"
                 >
-                  ✔ Acknowledge
+                  <CheckIcon style={{ width: 11, height: 11 }} /> Acknowledge
                 </button>
               </div>
             )}
@@ -831,7 +932,7 @@ function CopyrightTab({
                     fontWeight: "bold",
                   }}
                 >
-                  ⛔ Strike applied
+                  Strike applied
                 </span>
                 <button
                   type="button"
@@ -841,9 +942,9 @@ function CopyrightTab({
                       const result = Math.random() > 0.5 ? "won" : "lost";
                       resolveClaimAppeal(claim.id, result);
                       if (result === "won") {
-                        toast.success("✅ Appeal won! Strike cleared.");
+                        toast.success("Appeal won! Strike cleared.");
                       } else {
-                        toast.error("❌ Appeal lost. Strike stands.");
+                        toast.error("Appeal lost. Strike stands.");
                       }
                     }, 3000);
                     toast.info("Appeal submitted. Resolving in 3 seconds...");
@@ -860,7 +961,7 @@ function CopyrightTab({
                   }}
                   data-ocid="studio.secondary_button"
                 >
-                  ⚖️ Appeal Strike
+                  Appeal Strike
                 </button>
               </div>
             )}
@@ -873,7 +974,7 @@ function CopyrightTab({
                     fontStyle: "italic",
                   }}
                 >
-                  ⏳ Appeal pending...
+                  Appeal pending...
                 </span>
               )}
             {claim.status === "strikeApplied" &&
@@ -883,9 +984,13 @@ function CopyrightTab({
                     fontSize: "11px",
                     color: "#2e7d32",
                     fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px",
                   }}
                 >
-                  ✅ Appeal Won — Strike cleared
+                  <CheckIcon style={{ width: 11, height: 11 }} /> Appeal Won —
+                  Strike cleared
                 </span>
               )}
             {claim.status === "strikeApplied" &&
@@ -895,9 +1000,13 @@ function CopyrightTab({
                     fontSize: "11px",
                     color: "#c62828",
                     fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px",
                   }}
                 >
-                  ❌ Appeal Lost — Strike stands
+                  <CloseIcon style={{ width: 11, height: 11 }} /> Appeal Lost —
+                  Strike stands
                 </span>
               )}
           </div>
@@ -1070,26 +1179,74 @@ export default function StudioPage({ navigate }: StudioPageProps) {
   };
 
   const activeReports = videoReports.length;
-  const TABS = [
-    { id: "videos", label: "🎥 Videos" },
-    { id: "analytics", label: "📊 Analytics" },
-    { id: "revenue", label: "💰 Revenue" },
-    { id: "collaborations", label: "🤝 Collabs" },
+
+  type TabId =
+    | "videos"
+    | "analytics"
+    | "revenue"
+    | "collaborations"
+    | "copyright"
+    | "moderation"
+    | "goals"
+    | "progress"
+    | "danger"
+    | "business";
+
+  const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+    {
+      id: "videos",
+      label: "Videos",
+      icon: <VideoListIcon style={{ width: 13, height: 13 }} />,
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
+      icon: <AnalyticsIcon style={{ width: 13, height: 13 }} />,
+    },
+    {
+      id: "revenue",
+      label: "Revenue",
+      icon: <RevenueIcon style={{ width: 13, height: 13 }} />,
+    },
+    {
+      id: "collaborations",
+      label: "Collabs",
+      icon: <CollabIcon style={{ width: 13, height: 13 }} />,
+    },
     {
       id: "copyright",
       label:
         activeCopyrightCount > 0
-          ? `©️ Claims (${activeCopyrightCount})`
-          : "©️ Copyright",
+          ? `Claims (${activeCopyrightCount})`
+          : "Copyright",
+      icon: <ClaimsIcon style={{ width: 13, height: 13 }} />,
     },
     {
       id: "moderation",
-      label: activeReports > 0 ? `🛡️ Mod (${activeReports})` : "🛡️ Moderation",
+      label: activeReports > 0 ? `Mod (${activeReports})` : "Moderation",
+      icon: <ModIcon style={{ width: 13, height: 13 }} />,
     },
-    { id: "goals", label: "🎯 Goals" },
-    { id: "progress", label: "⭐ Progress" },
-    { id: "danger", label: "⚠️ Danger Zone" },
-  ] as const;
+    {
+      id: "goals",
+      label: "Goals",
+      icon: <GoalsIcon style={{ width: 13, height: 13 }} />,
+    },
+    {
+      id: "progress",
+      label: "Progress",
+      icon: <ProgressIcon style={{ width: 13, height: 13 }} />,
+    },
+    {
+      id: "danger",
+      label: "Danger Zone",
+      icon: <DangerIcon style={{ width: 13, height: 13 }} />,
+    },
+    {
+      id: "business",
+      label: "Business",
+      icon: <BusinessIcon style={{ width: 13, height: 13 }} />,
+    },
+  ];
 
   return (
     <div>
@@ -1113,9 +1270,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               fontWeight: "bold",
               color: "#333",
               margin: "0 0 2px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            🎨 YouTube Studio
+            <EditIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+            YouTube Studio
           </h2>
           <div
             style={{
@@ -1143,7 +1304,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                   fontWeight: "bold",
                 }}
               >
-                ✓
+                <CheckIcon style={{ width: 10, height: 10 }} />
               </span>
             )}
           </div>
@@ -1182,7 +1343,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
             gap: "10px",
           }}
         >
-          <span style={{ fontSize: "20px" }}>🚫</span>
+          <CloseIcon style={{ width: 20, height: 20, color: "#ef5350" }} />
           <div>
             <div
               style={{ fontWeight: "bold", fontSize: "13px", color: "#ef5350" }}
@@ -1213,7 +1374,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
             gap: "10px",
           }}
         >
-          <span style={{ fontSize: "20px" }}>🔄</span>
+          <AnalyticsIcon style={{ width: 20, height: 20, color: "#e65100" }} />
           <div style={{ flex: 1 }}>
             <div
               style={{ fontWeight: "bold", fontSize: "13px", color: "#e65100" }}
@@ -1256,7 +1417,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
             gap: "10px",
           }}
         >
-          <span style={{ fontSize: "18px" }}>⚠️</span>
+          <WarningIcon style={{ width: 18, height: 18, color: "#c62828" }} />
           <span
             style={{ fontSize: "12px", color: "#c62828", fontWeight: "bold" }}
           >
@@ -1279,7 +1440,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
             gap: "10px",
           }}
         >
-          <span style={{ fontSize: "20px" }}>💰</span>
+          <RevenueIcon style={{ width: 20, height: 20, color: "#f9a825" }} />
           <div>
             <div
               style={{ fontWeight: "bold", fontSize: "13px", color: "#555" }}
@@ -1309,10 +1470,38 @@ export default function StudioPage({ navigate }: StudioPageProps) {
         }}
       >
         {[
-          { label: "Subscribers", numValue: channel.subscribers, icon: "👤" },
-          { label: "Total Views", numValue: totalViews, icon: "👁" },
-          { label: "Total Likes", numValue: totalLikes, icon: "👍" },
-          { label: "Comments", value: String(totalComments), icon: "💬" },
+          {
+            label: "Subscribers",
+            numValue: channel.subscribers,
+            icon: (
+              <ViewerIcon style={{ width: 20, height: 20, color: "#cc0000" }} />
+            ),
+          },
+          {
+            label: "Total Views",
+            numValue: totalViews,
+            icon: (
+              <ViewerIcon style={{ width: 20, height: 20, color: "#cc0000" }} />
+            ),
+          },
+          {
+            label: "Total Likes",
+            numValue: totalLikes,
+            icon: (
+              <RevenueIcon
+                style={{ width: 20, height: 20, color: "#cc0000" }}
+              />
+            ),
+          },
+          {
+            label: "Comments",
+            value: String(totalComments),
+            icon: (
+              <AnalyticsIcon
+                style={{ width: 20, height: 20, color: "#cc0000" }}
+              />
+            ),
+          },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -1324,7 +1513,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               textAlign: "center",
             }}
           >
-            <div style={{ fontSize: "20px", marginBottom: "4px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: "4px",
+              }}
+            >
               {stat.icon}
             </div>
             <div
@@ -1373,9 +1568,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               fontWeight: activeTab === tab.id ? "bold" : "normal",
               whiteSpace: "nowrap",
               borderRadius: "3px 3px 0 0",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
             }}
             data-ocid="studio.tab"
           >
+            {tab.icon}
             {tab.label}
           </button>
         ))}
@@ -1411,9 +1610,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               fontWeight: "bold",
               color: "#333",
               margin: "0 0 4px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            🛡️ Video Moderation
+            <ModIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+            Video Moderation
           </h3>
           <p style={{ fontSize: "11px", color: "#888", margin: "0 0 16px" }}>
             Community reports are reviewed here. Dismiss false reports to keep
@@ -1430,7 +1633,17 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               }}
               data-ocid="studio.empty_state"
             >
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>✅</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: "8px",
+                }}
+              >
+                <CheckIcon
+                  style={{ width: 32, height: 32, color: "#2e7d32" }}
+                />
+              </div>
               <div style={{ fontSize: "12px", color: "#888" }}>
                 No reports. Your content is clean!
               </div>
@@ -1462,9 +1675,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                         fontWeight: "bold",
                         fontSize: "12px",
                         color: "#333",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
                       }}
                     >
-                      📋 {video?.title ?? report.videoId}
+                      <PinIcon style={{ width: 12, height: 12 }} />
+                      {video?.title ?? report.videoId}
                     </div>
                     <div
                       style={{
@@ -1491,10 +1708,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                       cursor: "pointer",
                       fontSize: "11px",
                       color: "#555",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "3px",
                     }}
                     data-ocid="studio.confirm_button"
                   >
-                    ✔ Dismiss
+                    <CheckIcon style={{ width: 11, height: 11 }} /> Dismiss
                   </button>
                 </div>
               );
@@ -1512,9 +1732,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               fontWeight: "bold",
               color: "#333",
               margin: "0 0 4px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            🎯 Subscriber Goals
+            <GoalsIcon style={{ width: 16, height: 16, color: "#cc0000" }} />
+            Subscriber Goals
           </h3>
           <p style={{ fontSize: "11px", color: "#888", margin: "0 0 16px" }}>
             Milestone tracker for your channel growth journey.
@@ -1557,8 +1781,16 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                         gap: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "18px" }}>
-                        {achieved ? "✅" : "🔒"}
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        {achieved ? (
+                          <CheckIcon
+                            style={{ width: 18, height: 18, color: "#2e7d32" }}
+                          />
+                        ) : (
+                          <GoalsIcon
+                            style={{ width: 18, height: 18, color: "#aaa" }}
+                          />
+                        )}
                       </span>
                       <div>
                         <div
@@ -1584,7 +1816,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                         color: achieved ? "#2e7d32" : "#555",
                       }}
                     >
-                      {achieved ? "🎉 Achieved!" : `${pct}%`}
+                      {achieved ? "Achieved!" : `${pct}%`}
                     </span>
                   </div>
                   <div
@@ -1622,7 +1854,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
         </div>
       )}
 
-      {/* Danger Zone Tab */}
+      {/* Progress / XP Tab */}
       {activeTab === "progress" && (
         <div
           style={{
@@ -1688,6 +1920,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
           </div>
         </div>
       )}
+
       {activeTab === "business" && (
         <BusinessTab
           business={creatorBusiness ?? null}
@@ -1711,6 +1944,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
           onPurchaseFacility={purchaseFacility}
         />
       )}
+
       {activeTab === "danger" && (
         <div>
           <h3
@@ -1719,9 +1953,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               fontWeight: "bold",
               color: "#c62828",
               margin: "0 0 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            ⚠️ Danger Zone
+            <DangerIcon style={{ width: 16, height: 16, color: "#c62828" }} />
+            Danger Zone
           </h3>
 
           {/* Notification Preference */}
@@ -1740,9 +1978,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                 fontSize: "12px",
                 color: "#333",
                 marginBottom: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
               }}
             >
-              🔔 Notification Preferences
+              <CoinIcon style={{ width: 14, height: 14, color: "#555" }} />
+              Notification Preferences
             </div>
             {(["all", "personalized", "none"] as const).map((pref) => (
               <label
@@ -1788,9 +2030,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                 fontSize: "12px",
                 color: "#333",
                 marginBottom: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
               }}
             >
-              🎮 Creator Mode
+              <EditIcon style={{ width: 14, height: 14, color: "#555" }} />
+              Creator Mode
             </div>
             <label
               style={{
@@ -1808,8 +2054,8 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               />
               <span style={{ fontSize: "12px", color: "#555" }}>
                 {creatorMode
-                  ? "✅ Creator Mode (shows Upload, Studio, analytics)"
-                  : "👁️ Viewer Mode (simplified browsing UI)"}
+                  ? "Creator Mode (shows Upload, Studio, analytics)"
+                  : "Viewer Mode (simplified browsing UI)"}
               </span>
             </label>
           </div>
@@ -1829,9 +2075,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                 fontSize: "12px",
                 color: "#c62828",
                 marginBottom: "6px",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
               }}
             >
-              🗑️ Reset Game
+              <DeleteIcon style={{ width: 14, height: 14, color: "#c62828" }} />
+              Reset Game
             </div>
             <p style={{ fontSize: "11px", color: "#666", margin: "0 0 10px" }}>
               Permanently deletes all progress, channels, videos, subscribers,
@@ -1860,9 +2110,13 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                 fontSize: "12px",
                 color: "#fff",
                 fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
             >
-              🔄 Reset Everything
+              <DeleteIcon style={{ width: 13, height: 13 }} />
+              Reset Everything
             </button>
           </div>
         </div>
@@ -2055,7 +2309,18 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                 >
                                   {v.isShort ? "Short" : "Video"} •{" "}
                                   {v.comments.length} comments
-                                  {v.hasContentIdClaim ? " ⚠️" : ""}
+                                  {v.hasContentIdClaim && (
+                                    <WarningIcon
+                                      style={{
+                                        width: 10,
+                                        height: 10,
+                                        marginLeft: 3,
+                                        color: "#f57c00",
+                                        display: "inline-block",
+                                        verticalAlign: "middle",
+                                      }}
+                                    />
+                                  )}
                                   {v.ageRestricted && (
                                     <span
                                       style={{
@@ -2083,7 +2348,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                         fontWeight: "bold",
                                       }}
                                     >
-                                      💸 Demonetized
+                                      Demonetized
                                     </span>
                                   )}
                                   {videoReports.find(
@@ -2096,7 +2361,7 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                         fontSize: "9px",
                                       }}
                                     >
-                                      📋 Reported
+                                      Reported
                                     </span>
                                   )}
                                 </div>
@@ -2145,10 +2410,14 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                   fontSize: "10px",
                                   color: "#fff",
                                   whiteSpace: "nowrap",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "3px",
                                 }}
                                 data-ocid="studio.secondary_button"
                               >
-                                📺 End Screen
+                                <EditIcon style={{ width: 10, height: 10 }} />
+                                End Screen
                               </button>
                               {demonetizedVideoIds.includes(v.id) && (
                                 <button
@@ -2157,11 +2426,11 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                     if (Math.random() > 0.5) {
                                       remonetizeVideo(v.id);
                                       toast.success(
-                                        `✅ "${v.title}" re-monetized!`,
+                                        `"${v.title}" re-monetized!`,
                                       );
                                     } else {
                                       toast.error(
-                                        `❌ Re-monetization appeal denied for "${v.title}".`,
+                                        `Re-monetization appeal denied for "${v.title}".`,
                                       );
                                     }
                                   }}
@@ -2174,10 +2443,16 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                     fontSize: "10px",
                                     color: "#fff",
                                     whiteSpace: "nowrap",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "3px",
                                   }}
                                   data-ocid="studio.secondary_button"
                                 >
-                                  💸 Appeal
+                                  <RevenueIcon
+                                    style={{ width: 10, height: 10 }}
+                                  />
+                                  Appeal
                                 </button>
                               )}
                             </div>
@@ -2201,7 +2476,15 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                               }}
                               data-ocid="studio.toggle"
                             >
-                              {expandedVideoId === v.id ? "▲" : "▼"}
+                              {expandedVideoId === v.id ? (
+                                <ChevronUpIcon
+                                  style={{ width: 10, height: 10 }}
+                                />
+                              ) : (
+                                <ChevronDownIcon
+                                  style={{ width: 10, height: 10 }}
+                                />
+                              )}
                             </button>
                           </td>
                         </tr>
@@ -2297,9 +2580,18 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                                                 style={{
                                                   color: "#aaa",
                                                   fontSize: "10px",
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  gap: "2px",
                                                 }}
                                               >
-                                                👍 {c.likes}
+                                                <ViewerIcon
+                                                  style={{
+                                                    width: 10,
+                                                    height: 10,
+                                                  }}
+                                                />
+                                                {c.likes}
                                               </span>
                                             </div>
                                             <div
@@ -2466,9 +2758,17 @@ export default function StudioPage({ navigate }: StudioPageProps) {
               }}
             >
               <span
-                style={{ color: "#fff", fontWeight: "bold", fontSize: "13px" }}
+                style={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
               >
-                📺 End Screen Editor
+                <EditIcon style={{ width: 14, height: 14 }} />
+                End Screen Editor
               </span>
               <button
                 type="button"
@@ -2479,10 +2779,12 @@ export default function StudioPage({ navigate }: StudioPageProps) {
                   color: "rgba(255,255,255,0.8)",
                   cursor: "pointer",
                   fontSize: "16px",
+                  display: "flex",
+                  alignItems: "center",
                 }}
                 data-ocid="studio.close_button"
               >
-                ✕
+                <CloseIcon style={{ width: 16, height: 16 }} />
               </button>
             </div>
             <div style={{ padding: "16px" }}>
